@@ -19,9 +19,9 @@
   assert(model != none)
   let _ = assert_ty("deck", deck, str)
   let _ = assert_ty("model", model, str)
-
+  
   let id = str(id)
-
+  
   let fields = fields.named()
   is_export(export => {
     if export {
@@ -40,7 +40,7 @@
           let end_id = deck + id + name + "end"
           let page_start = get_label_page(start_id, deck + "." + id, loc)
           let page_end = get_label_page(end_id, deck + "." + id, loc)
-
+          
           if plain == none {
             [
               #pagebreak(weak: true)

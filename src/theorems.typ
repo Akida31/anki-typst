@@ -67,7 +67,7 @@
       } else {
         _get_headings(loc)
       }
-
+      
       let model = if model != none {
         model
       } else if state.model != none {
@@ -75,7 +75,7 @@
       } else {
         "anki-typst"
       }
-
+      
       raw.anki_export(
         id: id,
         tags: tags,
@@ -96,7 +96,7 @@
       ..args,
     )(name, content)
   }
-
+  
   return inner
 }
 
@@ -109,7 +109,14 @@
   separator: [*.* #h(0.1em)],
   ..args,
 ) = {
-  let inner(front, content, tags: (), deck: none, model: none, clear_tags: false) = {
+  let inner(
+    front,
+    content,
+    tags: (),
+    deck: none,
+    model: none,
+    clear_tags: false,
+  ) = {
     let tags = if clear_tags {
       tags
     } else {
@@ -125,7 +132,14 @@
     )
     is_export(export => {
       if not export {
-        _item_inner(name, identifier, base_level: base_level, inset: inset, separator: separator, ..args)(
+        _item_inner(
+          name,
+          identifier,
+          base_level: base_level,
+          inset: inset,
+          separator: separator,
+          ..args,
+        )(
           front,
           content,
         )
@@ -170,14 +184,21 @@
       back: content,
       proof: proof,
     )
-
+    
     is_export(export => {
       if not export {
-        _item_inner(name, identifier, base_level: base_level, inset: inset, separator: separator, ..item_args)(
+        _item_inner(
+          name,
+          identifier,
+          base_level: base_level,
+          inset: inset,
+          separator: separator,
+          ..item_args,
+        )(
           front,
           content,
         )
-
+        
         ct.thmplain(
           proof_identifier,
           proof_name,
@@ -193,6 +214,6 @@
       }
     })
   }
-
+  
   return inner
 }

@@ -11,7 +11,7 @@
   if set_export_from_sys {
     config.set_export_from_sys()
   }
-
+  
   config.is_export(export => {
     if enable_theorems and not export {
       show: theorems.thmrules

@@ -80,7 +80,9 @@
     return none
   }
   if elems.len() != 1 {
-    panic("expected one elem for id " + id_name + " but got " + str(elems.len()) + ". Did you use the same id twice?")
+    panic("expected one elem for id " + id_name + " but got " + str(
+      elems.len(),
+    ) + ". Did you use the same id twice?")
   }
   elems.at(0).location().page()
 }

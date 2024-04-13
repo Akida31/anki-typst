@@ -25,5 +25,5 @@
 }
 
 #let is_export(f) = {
-  anki_config.display(val => f(val.export))  
+  anki_config.display(val => f(val.export))
 }
