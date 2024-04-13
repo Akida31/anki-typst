@@ -1,6 +1,6 @@
 #import "config.typ": is_export
 #import "raw.typ"
-#import "utils.typ": to_plain, to_string
+#import "utils.typ": assert_ty, to_plain, to_string
 
 #import "@preview/ctheorems:1.1.2" as ct
 #import ct: thmrules
@@ -57,10 +57,9 @@
   model: none,
   ..fields,
 ) = {
+  let _ = assert_ty("tags", tags, array)
   anki_state.display(state => {
     locate(loc => {
-      let tags = ("satz", ..tags)
-
       let deck = if deck != none {
         deck
       } else if state.deck != none and state.deck != "" {
@@ -104,12 +103,18 @@
 #let item(
   name,
   identifier: "items",
+  initial_tags: (),
   base_level: 2,
   inset: 0em,
   separator: [*.* #h(0.1em)],
   ..args,
 ) = {
-  let inner(front, content, tags: (), deck: none, model: none) = {
+  let inner(front, content, tags: (), deck: none, model: none, clear_tags: false) = {
+    let tags = if clear_tags {
+      tags
+    } else {
+      (..initial_tags, ..tags)
+    }
     anki_thm(
       front,
       deck: deck,
@@ -137,6 +142,7 @@
   proof_identifier: "item",
   item_args: (:),
   proof_args: (:),
+  initial_tags: (),
   base_level: 2,
   inset: 0em,
   separator: [*.* #h(0.1em)],
@@ -148,7 +154,13 @@
     tags: (),
     deck: none,
     model: none,
+    clear_tags: false,
   ) = {
+    let tags = if clear_tags {
+      tags
+    } else {
+      (..initial_tags, ..tags)
+    }
     anki_thm(
       front,
       deck: deck,
