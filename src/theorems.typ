@@ -80,14 +80,16 @@
         "anki-typst"
       }
       
-      ct.thmcounters.display(x => raw.anki_export(
-        id: id,
-        tags: tags,
-        deck: deck,
-        model: model,
-        number: _global_numbering(numbering, ..x.at("latest")),
-        ..fields,
-      ))
+      if numbering != none {
+        ct.thmcounters.display(x => raw.anki_export(
+          id: id,
+          tags: tags,
+          deck: deck,
+          model: model,
+          number: _global_numbering(numbering, ..x.at("latest")),
+          ..fields,
+        ))
+      }
     })
   })
 }
