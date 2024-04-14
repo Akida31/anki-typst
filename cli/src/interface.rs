@@ -103,7 +103,7 @@ mod cli {
                         filename
                     )
                 };
-                let Some(filename) = filename.strip_prefix(".svg") else {
+                let Some(filename) = filename.strip_suffix(".svg") else {
                     bail!("output filename must end with `.svg` but was {}", filename)
                 };
                 let page: usize = filename.parse().map_err(|e| {
