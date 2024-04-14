@@ -1,6 +1,23 @@
 [package]
-name = "cli"
+name = "anki-typst"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+base64 = "0.22.0"
+clap = { version = "4.5.4", features = ["derive"] }
+color-eyre = "0.6.3"
+directories-next = "2.0.0"
+indexmap = { version = "2.2.6", features = ["serde"] }
+notify = "6.1.1"
+regex = "1.10.4"
+reqwest = { version = "0.12.3", features = ["blocking", "json"] }
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = "1.0.115"
+serde_path_to_error = "0.1.16"
+tempfile = "3.10.1"
+toml = "0.8.12"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+chrono = "0.4.37"
+fasthash = "0.4.0"
