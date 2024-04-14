@@ -59,6 +59,7 @@
   deck: none,
   model: none,
   numbering: "1.1",
+  in_container: false,
   ..fields,
 ) = {
   let _ = assert_ty("tags", tags, array)
@@ -87,6 +88,7 @@
           deck: deck,
           model: model,
           number: _global_numbering(numbering, ..x.at("latest")),
+          in_container: in_container,
           ..fields,
         ))
       }
@@ -151,6 +153,7 @@
       front: front,
       back: content,
       numbering: numbering,
+      in_container: true,
     )
     let cont = is_export(export => {
       if not export {
@@ -168,7 +171,17 @@
         )
       }
     })
-    _make_referencable(meta + cont, name, numbering)
+
+    let content = _make_referencable(meta + cont, name, numbering)
+    is_export(export => {
+      if export {
+        pagebreak(weak: true)
+        content
+        pagebreak(weak: true)
+      } else {
+        content
+      }
+    })
   }
   return inner
 }
@@ -209,6 +222,7 @@
       back: content,
       proof: proof,
       numbering: numbering,
+      in_container: true,
     )
     
     let cont = is_export(export => {
@@ -241,7 +255,16 @@
       }
     })
     
-    _make_referencable(meta + cont, name, numbering)
+    let content = _make_referencable(meta + cont, name, numbering)
+    is_export(export => {
+      if export {
+        pagebreak(weak: true)
+        content
+        pagebreak(weak: true)
+      } else {
+        content
+      }
+    })
   }
   
   return inner

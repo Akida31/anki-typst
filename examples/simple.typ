@@ -24,7 +24,7 @@
   $ a^2 + b^2 = c^2 $
 ]
 
-// run typst query examples/test.typ '<anki-export>' --input export=true --root=.
+// run typst query examples/simple.typ '<anki-export>' --input export=true --root=.
 // to get something like this (the format isn't stable):
 /*
 [
