@@ -14,10 +14,10 @@
   Theorem-content
 ][
   This is a proof
-]
+]<euclid>
 
 #unnumbered("Notation")[
-  Did you know?
+  Did you know? @euclid was also a human
 ]
 
 #example("Pythagoras")[

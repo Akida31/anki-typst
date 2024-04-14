@@ -13,7 +13,7 @@
   }
   
   config.is_export(export => {
-    if enable_theorems and not export {
+    if enable_theorems {
       show: theorems.setup
       doc
     } else {

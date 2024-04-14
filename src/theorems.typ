@@ -59,7 +59,6 @@
   deck: none,
   model: none,
   numbering: "1.1",
-  in_container: false,
   ..fields,
 ) = {
   let _ = assert_ty("tags", tags, array)
@@ -81,32 +80,65 @@
         "anki-typst"
       }
       
-      if numbering != none {
-        ct.thmcounters.display(x => raw.anki_export(
+      ct.thmcounters.display(x => {
+        let number = none
+        if numbering != none {
+          number = _global_numbering(numbering, ..x.at("latest"))
+        }
+        raw.anki_export(
           id: id,
           tags: tags,
           deck: deck,
           model: model,
-          number: _global_numbering(numbering, ..x.at("latest")),
-          in_container: in_container,
+          number: number,
           ..fields,
-        ))
-      }
+        )
+      })
     })
   })
 }
 
-#let _item_inner(name, identifier, inner_args: (:), ..args) = {
+#let _item_inner(
+  export,
+  name,
+  identifier,
+  inner_args: (:),
+  base: "heading",
+  base_level: none,
+  ..args,
+) = {
   let item_name = name
-  let inner(name, content) = {
-    ct.thmbox(
-      "items",
-      item_name,
-      ..args,
-    )(name, content, ..inner_args)
+  if export {
+    let args_named = args.named()
+    for key in ("inset", "separator") {
+      let _ = args_named.remove(key, default: none)
+    }
+    let args_pos = args.pos()
+    let inner(name, content) = {
+      ct.thmenv(
+        "items",
+        base,
+        base_level,
+        (..args) => [],
+        ..args_pos,
+        ..args_named,
+      )(name, content, supplement: name, ..inner_args)
+    }
+    
+    return inner
+  } else {
+    let inner(name, content) = {
+      ct.thmbox(
+        "items",
+        item_name,
+        base: base,
+        base_level: base_level,
+        ..args,
+      )(name, content, ..inner_args)
+    }
+    
+    return inner
   }
-  
-  return inner
 }
 
 #let _make_referencable(content, identifier, numbering) = {
@@ -145,6 +177,21 @@
     } else {
       (..initial_tags, ..tags)
     }
+    let cont = is_export(export => {
+      _item_inner(
+        export,
+        name,
+        identifier,
+        base_level: base_level,
+        inset: inset,
+        separator: separator,
+        inner_args: (numbering: numbering),
+        ..args,
+      )(
+        front,
+        content,
+      )
+    })
     let meta = anki_thm(
       front,
       deck: deck,
@@ -153,35 +200,9 @@
       front: front,
       back: content,
       numbering: numbering,
-      in_container: true,
     )
-    let cont = is_export(export => {
-      if not export {
-        _item_inner(
-          name,
-          identifier,
-          base_level: base_level,
-          inset: inset,
-          separator: separator,
-          inner_args: (numbering: numbering),
-          ..args,
-        )(
-          front,
-          content,
-        )
-      }
-    })
-
-    let content = _make_referencable(meta + cont, name, numbering)
-    is_export(export => {
-      if export {
-        pagebreak(weak: true)
-        content
-        pagebreak(weak: true)
-      } else {
-        content
-      }
-    })
+    
+    _make_referencable(cont + meta, name, numbering)
   }
   return inner
 }
@@ -213,33 +234,23 @@
     } else {
       (..initial_tags, ..tags)
     }
-    let meta = anki_thm(
-      front,
-      deck: deck,
-      model: model,
-      tags: tags,
-      front: front,
-      back: content,
-      proof: proof,
-      numbering: numbering,
-      in_container: true,
-    )
     
     let cont = is_export(export => {
+      _item_inner(
+        export,
+        name,
+        identifier,
+        base_level: base_level,
+        inset: inset,
+        separator: separator,
+        inner_args: (numbering: numbering),
+        ..item_args,
+      )(
+        front,
+        content,
+      )
+      
       if not export {
-        _item_inner(
-          name,
-          identifier,
-          base_level: base_level,
-          inset: inset,
-          separator: separator,
-          inner_args: (numbering: numbering),
-          ..item_args,
-        )(
-          front,
-          content,
-        )
-        
         ct.thmplain(
           proof_identifier,
           proof_name,
@@ -254,17 +265,18 @@
         ).with(numbering: none)(proof)
       }
     })
+    let meta = anki_thm(
+      front,
+      deck: deck,
+      model: model,
+      tags: tags,
+      front: front,
+      back: content,
+      proof: proof,
+      numbering: numbering,
+    )
     
-    let content = _make_referencable(meta + cont, name, numbering)
-    is_export(export => {
-      if export {
-        pagebreak(weak: true)
-        content
-        pagebreak(weak: true)
-      } else {
-        content
-      }
-    })
+    _make_referencable(cont + meta, name, numbering)
   }
   
   return inner
@@ -272,7 +284,6 @@
 
 #let setup(doc) = {
   show: thmrules
-  
   
   // copied from ctheorems
   show figure.where(kind: "anki-item"): it => it.body

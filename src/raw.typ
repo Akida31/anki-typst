@@ -6,7 +6,7 @@
   tags: (),
   deck: none,
   model: none,
-  in_container: false,
+  number: none,
   ..fields,
 ) = {
   for tag in tags {
@@ -37,6 +37,9 @@
         if config.date != none {
           meta.fields.insert("date", config.date)
         }
+        if number != none {
+          meta.fields.insert("number", number)
+        }
         for (name, val) in fields.pairs() {
           let plain = to_plain(val)
           let spacer = "<<anki>>"
@@ -47,9 +50,7 @@
           
           if plain == none {
             [
-              #if not in_container {
-                pagebreak(weak: true)
-              }
+              #pagebreak(weak: true)
               #[] #label(start_id)
               #val
               #[] #label(end_id)
@@ -78,9 +79,7 @@
         }
         [#metadata(meta) <anki-export>]
       })
-      if not in_container {
-        pagebreak(weak: true)
-      }
+      pagebreak(weak: true)
     }
   })
 }
