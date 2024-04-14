@@ -71,7 +71,7 @@
           state.deck
         } else {
           let headings = _get_headings(loc)
-          if title != none {
+          if title != none and title != "" {
             title + "::" + headings
           } else {
             headings
@@ -80,7 +80,7 @@
         
         let model = if model != none {
           model
-        } else if state.model != none {
+        } else if state.model != none and state.model != "" {
           state.model
         } else {
           "anki-typst"
