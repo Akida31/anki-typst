@@ -1,4 +1,4 @@
-#import "config.typ": is_export
+#import "config.typ": anki_config
 #import "utils.typ": assert_ty, to_plain, get_label_page, to_string
 
 #let anki_export(
@@ -23,8 +23,8 @@
   let id = str(id)
   
   let fields = fields.named()
-  is_export(export => {
-    if export {
+  anki_config.display(config => {
+    if config.export {
       locate(loc => {
         let meta = (
           id: id,
@@ -33,6 +33,9 @@
           fields: (:),
           tags: tags,
         )
+        if config.date != none {
+          meta.fields.insert(date, config.date)
+        }
         for (name, val) in fields.pairs() {
           let plain = to_plain(val)
           let spacer = "<<anki>>"

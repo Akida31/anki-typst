@@ -1,5 +1,5 @@
 #import "raw.typ": anki_export
-#import "config.typ": set_export_from_sys
+#import "config.typ": set_export_from_sys, set_date
 #import "theorems.typ"
 
 #let setup(

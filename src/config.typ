@@ -2,12 +2,24 @@
   "anki::config",
   (
     export: false,
+    date: none,
   ),
 )
 
 #let set_export(val) = {
   anki_config.update(conf => {
     conf.export = val
+    conf
+  })
+}
+
+#let is_export(f) = {
+  anki_config.display(val => f(val.export))
+}
+
+#let set_date(val) = {
+  anki_config.update(conf => {
+    conf.date = val
     conf
   })
 }
@@ -22,8 +34,4 @@
     panic("unexpected export value: " + val)
   }
   set_export(val)
-}
-
-#let is_export(f) = {
-  anki_config.display(val => f(val.export))
 }
