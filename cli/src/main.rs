@@ -545,7 +545,7 @@ fn get_notes(query: &str) -> Result<Vec<NoteWithInfo>> {
 fn create_all_decks(path: &Path) -> Result<()> {
     debug!("parsing file for used decks");
     let path_str = path.to_string_lossy();
-    let metadata = interface::query(&path_str)?;
+    let metadata = query(&path_str)?;
     let used_decks = metadata.0.into_iter().map(|inner| inner.value.deck);
 
     let used_decks = used_decks

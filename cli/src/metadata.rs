@@ -3,7 +3,7 @@ use serde::de::Error;
 use serde::Deserialize;
 use std::fmt::Formatter;
 
-const EXPORT_LABEL: &str = "anki-export";
+const EXPORT_LABEL: &str = "<anki-export>";
 
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct Metadata(pub Vec<InnerMetadata>);

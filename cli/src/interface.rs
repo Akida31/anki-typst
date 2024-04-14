@@ -24,7 +24,7 @@ mod cli {
         cmd.args(args);
         let res = cmd
             .output()
-            .map_err(|e| eyre!("can't run typst command {}: {}", fmt_cmd(), e))?;
+            .map_err(|e| eyre!("can't run typst command `{}`: {}", fmt_cmd(), e))?;
 
         if !res.status.success() {
             return Err(eyre!(
@@ -53,7 +53,7 @@ mod cli {
         let output = output
             .to_str()
             .ok_or_eyre("tempdir path must be valid utf-8")?;
-        let args = &["compile", path, output, "--input export=true"];
+        let args = &["compile", path, output, "--input", "export=true"];
         let stdout = run_cmd(args)?;
 
         if !stdout.is_empty() {
@@ -126,7 +126,7 @@ mod cli {
     }
 
     pub fn query(path: &str) -> Result<Metadata> {
-        let json = run_cmd(&["query", path, "'<anki-export>'", "--input export=true"])?;
+        let json = run_cmd(&["query", path, "<anki-export>", "--input", "export=true"])?;
         let jd = &mut serde_json::Deserializer::from_slice(&json);
 
         serde_path_to_error::deserialize(jd).map_err(|e| {
