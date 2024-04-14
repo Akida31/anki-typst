@@ -71,7 +71,7 @@
       } else {
         _get_headings(loc)
       }
-
+      
       let model = if model != none {
         model
       } else if state.model != none {
@@ -79,7 +79,7 @@
       } else {
         "anki-typst"
       }
-
+      
       ct.thmcounters.display(x => raw.anki_export(
         id: id,
         tags: tags,
@@ -101,7 +101,7 @@
       ..args,
     )(name, content, ..inner_args)
   }
-
+  
   return inner
 }
 
@@ -208,7 +208,7 @@
       proof: proof,
       numbering: numbering,
     )
-
+    
     let cont = is_export(export => {
       if not export {
         _item_inner(
@@ -223,7 +223,7 @@
           front,
           content,
         )
-
+        
         ct.thmplain(
           proof_identifier,
           proof_name,
@@ -238,17 +238,17 @@
         ).with(numbering: none)(proof)
       }
     })
-
+    
     _make_referencable(meta + cont, name, numbering)
   }
-
+  
   return inner
 }
 
 #let setup(doc) = {
   show: thmrules
-
-
+  
+  
   // copied from ctheorems
   show figure.where(kind: "anki-item"): it => it.body
   show ref: it => {
@@ -261,12 +261,12 @@
     if it.element.kind != "anki-item" {
       return it
     }
-
+    
     let supplement = it.element.supplement
     if it.citation.supplement != none {
       supplement = it.citation.supplement
     }
-
+    
     let loc = it.element.location()
     let thms = query(selector(<meta:anki-thmenvcounter>).after(loc), loc)
     let number = ct.thmcounters.at(thms.first().location()).at("latest")
@@ -275,6 +275,6 @@
       [#supplement~#numbering(it.element.numbering, ..number)],
     )
   }
-
+  
   doc
 }
