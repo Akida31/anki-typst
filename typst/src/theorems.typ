@@ -69,7 +69,12 @@
       } else if state.deck != none and state.deck != "" {
         state.deck
       } else {
-        _get_headings(loc)
+        let headings = _get_headings(loc)
+        if state.title != none {
+          state.title + "::" + headings
+        } else {
+          headings
+        }
       }
       
       let model = if model != none {

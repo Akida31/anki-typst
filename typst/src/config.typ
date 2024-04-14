@@ -3,6 +3,7 @@
   (
     export: false,
     date: none,
+    title: none,
   ),
 )
 
