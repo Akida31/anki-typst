@@ -13,7 +13,7 @@
     config.set_export_from_sys()
   }
 
-  anki_config.update(conf => {
+  config.anki_config.update(conf => {
     conf.title = title
     conf
   })
