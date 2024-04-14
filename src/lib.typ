@@ -14,7 +14,7 @@
   
   config.is_export(export => {
     if enable_theorems and not export {
-      show: theorems.thmrules
+      show: theorems.setup
       doc
     } else {
       doc

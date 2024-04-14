@@ -5,6 +5,9 @@
 #import "@preview/ctheorems:1.1.2" as ct
 #import ct: thmrules
 
+// prevent shadowing
+#let _global_numbering = numbering
+
 #let anki_state = state(
   "anki_state",
   (
@@ -55,6 +58,7 @@
   tags: (),
   deck: none,
   model: none,
+  numbering: "1.1",
   ..fields,
 ) = {
   let _ = assert_ty("tags", tags, array)
@@ -67,7 +71,7 @@
       } else {
         _get_headings(loc)
       }
-      
+
       let model = if model != none {
         model
       } else if state.model != none {
@@ -75,29 +79,43 @@
       } else {
         "anki-typst"
       }
-      
-      raw.anki_export(
+
+      ct.thmcounters.display(x => raw.anki_export(
         id: id,
         tags: tags,
         deck: deck,
         model: model,
+        number: _global_numbering(numbering, ..x.at("latest")),
         ..fields,
-      )
+      ))
     })
   })
 }
 
-#let _item_inner(name, identifier, ..args) = {
+#let _item_inner(name, identifier, inner_args: (:), ..args) = {
   let item_name = name
   let inner(name, content) = {
     ct.thmbox(
       "items",
       item_name,
       ..args,
-    )(name, content)
+    )(name, content, ..inner_args)
   }
-  
+
   return inner
+}
+
+#let _make_referencable(content, identifier, numbering) = {
+  figure(
+    content + [#metadata(identifier) <meta:anki-thmenvcounter>],
+    placement: none,
+    caption: none,
+    kind: "anki-item",
+    supplement: identifier,
+    numbering: numbering,
+    gap: 0em,
+    outlined: false,
+  )
 }
 
 #let item(
@@ -107,6 +125,7 @@
   base_level: 2,
   inset: 0em,
   separator: [*.* #h(0.1em)],
+  numbering: "1.1",
   ..args,
 ) = {
   let inner(
@@ -122,15 +141,16 @@
     } else {
       (..initial_tags, ..tags)
     }
-    anki_thm(
+    let meta = anki_thm(
       front,
       deck: deck,
       model: model,
       tags: tags,
       front: front,
       back: content,
+      numbering: numbering,
     )
-    is_export(export => {
+    let cont = is_export(export => {
       if not export {
         _item_inner(
           name,
@@ -138,6 +158,7 @@
           base_level: base_level,
           inset: inset,
           separator: separator,
+          inner_args: (numbering: numbering),
           ..args,
         )(
           front,
@@ -145,6 +166,7 @@
         )
       }
     })
+    _make_referencable(meta + cont, name, numbering)
   }
   return inner
 }
@@ -160,6 +182,7 @@
   base_level: 2,
   inset: 0em,
   separator: [*.* #h(0.1em)],
+  numbering: "1.1",
 ) = {
   let inner(
     front,
@@ -175,7 +198,7 @@
     } else {
       (..initial_tags, ..tags)
     }
-    anki_thm(
+    let meta = anki_thm(
       front,
       deck: deck,
       model: model,
@@ -183,9 +206,10 @@
       front: front,
       back: content,
       proof: proof,
+      numbering: numbering,
     )
-    
-    is_export(export => {
+
+    let cont = is_export(export => {
       if not export {
         _item_inner(
           name,
@@ -193,12 +217,13 @@
           base_level: base_level,
           inset: inset,
           separator: separator,
+          inner_args: (numbering: numbering),
           ..item_args,
         )(
           front,
           content,
         )
-        
+
         ct.thmplain(
           proof_identifier,
           proof_name,
@@ -213,7 +238,43 @@
         ).with(numbering: none)(proof)
       }
     })
+
+    _make_referencable(meta + cont, name, numbering)
   }
-  
+
   return inner
+}
+
+#let setup(doc) = {
+  show: thmrules
+
+
+  // copied from ctheorems
+  show figure.where(kind: "anki-item"): it => it.body
+  show ref: it => {
+    if it.element == none {
+      return it
+    }
+    if it.element.func() != figure {
+      return it
+    }
+    if it.element.kind != "anki-item" {
+      return it
+    }
+
+    let supplement = it.element.supplement
+    if it.citation.supplement != none {
+      supplement = it.citation.supplement
+    }
+
+    let loc = it.element.location()
+    let thms = query(selector(<meta:anki-thmenvcounter>).after(loc), loc)
+    let number = ct.thmcounters.at(thms.first().location()).at("latest")
+    return link(
+      it.target,
+      [#supplement~#numbering(it.element.numbering, ..number)],
+    )
+  }
+
+  doc
 }
