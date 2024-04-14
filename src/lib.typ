@@ -13,8 +13,14 @@
   }
   
   config.is_export(export => {
-    if enable_theorems {
+    let doc = if enable_theorems {
       show: theorems.setup
+      doc
+    } else {
+      doc
+    }
+    if export {
+      set page(margin: 0.5cm, height: auto)
       doc
     } else {
       doc
