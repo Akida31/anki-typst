@@ -18,6 +18,10 @@
   anki_config.display(val => f(val.export))
 }
 
+#let get_title(f) = {
+  anki_config.display(val => f(val.title))
+}
+
 #let set_date(val) = {
   anki_config.update(conf => {
     conf.date = val

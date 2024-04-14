@@ -1,4 +1,4 @@
-#import "config.typ": is_export
+#import "config.typ": is_export, get_title
 #import "raw.typ"
 #import "utils.typ": assert_ty, to_plain, to_string
 
@@ -63,41 +63,43 @@
 ) = {
   let _ = assert_ty("tags", tags, array)
   anki_state.display(state => {
-    locate(loc => {
-      let deck = if deck != none {
-        deck
-      } else if state.deck != none and state.deck != "" {
-        state.deck
-      } else {
-        let headings = _get_headings(loc)
-        if state.title != none {
-          state.title + "::" + headings
+    get_title(title => {
+      locate(loc => {
+        let deck = if deck != none {
+          deck
+        } else if state.deck != none and state.deck != "" {
+          state.deck
         } else {
-          headings
+          let headings = _get_headings(loc)
+          if title != none {
+            title + "::" + headings
+          } else {
+            headings
+          }
         }
-      }
-      
-      let model = if model != none {
-        model
-      } else if state.model != none {
-        state.model
-      } else {
-        "anki-typst"
-      }
-      
-      ct.thmcounters.display(x => {
-        let number = none
-        if numbering != none {
-          number = _global_numbering(numbering, ..x.at("latest"))
+        
+        let model = if model != none {
+          model
+        } else if state.model != none {
+          state.model
+        } else {
+          "anki-typst"
         }
-        raw.anki_export(
-          id: id,
-          tags: tags,
-          deck: deck,
-          model: model,
-          number: number,
-          ..fields,
-        )
+        
+        ct.thmcounters.display(x => {
+          let number = none
+          if numbering != none {
+            number = _global_numbering(numbering, ..x.at("latest"))
+          }
+          raw.anki_export(
+            id: id,
+            tags: tags,
+            deck: deck,
+            model: model,
+            number: number,
+            ..fields,
+          )
+        })
       })
     })
   })

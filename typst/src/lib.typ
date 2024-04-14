@@ -12,12 +12,12 @@
   if set_export_from_sys {
     config.set_export_from_sys()
   }
-
+  
   config.anki_config.update(conf => {
     conf.title = title
     conf
   })
-
+  
   config.is_export(export => {
     let doc = if enable_theorems {
       show: theorems.setup
