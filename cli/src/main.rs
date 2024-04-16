@@ -363,7 +363,7 @@ enum Commands {
 #[derive(Debug, clap::Args)]
 struct CreateArgs {
     /// Set the theme for images
-    #[arg(long, value_enum, default_value_t = Theme::Light)]
+    #[arg(long, value_enum, default_value_t = Theme::Dark)]
     theme: Theme,
 }
 
