@@ -10,7 +10,7 @@ use tracing_subscriber::FmtSubscriber;
 use crate::api::{
     add_notes, get_model_field_names_multi, MediaData, MediaDataInner, SingleOrMulti,
 };
-use crate::interface::{compile, query};
+use crate::interface::{compile, query, CompileOutput, ThemedCompileOutput};
 use crate::metadata::{Field, Note};
 use api::{cards_info, find_notes, get_deck_names, get_model_names, notes_info, sync};
 use config::Config;
@@ -201,29 +201,14 @@ fn update_change(state: &mut State, config: &Config, path: &Path, args: &CreateA
                     assert!(page_start <= page_end);
                     let mut is_first = true;
                     for page_number in *page_start..=*page_end {
-                        let Some((_path, encoded_data)) = output.files.get(&page_number).cloned()
-                        else {
-                            bail!(
-                                "missing page with number {} for note {:?}",
-                                page_number,
-                                note.fields
-                            );
-                        };
-                        let filename = api::store_media_file(&MediaData {
-                            filename: match &note.id {
-                                Some(val) => format!("{val}_page{page_number}.svg"),
-                                None => bail!("note requires id: {:?}", note),
-                            },
-                            inner: MediaDataInner::Data(encoded_data),
-                            delete_existing: false,
-                        })?;
-
-                        let alt = if is_first {
-                            format!(" alt=\"{content}\"")
-                        } else {
-                            String::new()
-                        };
-                        field.push_str(&format!("<img src=\"{filename}\"{alt}>"));
+                        let res = build_note_field_with_img(
+                            &output,
+                            &note,
+                            content,
+                            is_first,
+                            page_number,
+                        )?;
+                        field.push_str(&res);
                         is_first = false;
                     }
 
@@ -309,6 +294,62 @@ fn update_change(state: &mut State, config: &Config, path: &Path, args: &CreateA
     Ok(())
 }
 
+fn build_note_field_with_img(
+    output: &ThemedCompileOutput,
+    note: &Note,
+    content: &String,
+    is_first: bool,
+    page_number: usize,
+) -> Result<String> {
+    let get_data = |files: &CompileOutput| {
+        let Some((_path, encoded_data)) = files.files.get(&page_number).cloned() else {
+            bail!(
+                "missing page with number {} for note {:?}",
+                page_number,
+                note.fields
+            );
+        };
+        let filename = api::store_media_file(&MediaData {
+            filename: match &note.id {
+                Some(val) => format!("{val}_page{page_number}.svg"),
+                None => bail!("note requires id: {:?}", note),
+            },
+            inner: MediaDataInner::Data(encoded_data),
+            delete_existing: false,
+        })?;
+        Ok(filename)
+    };
+
+    let alt = if is_first {
+        format!(" alt=\"{content}\"")
+    } else {
+        String::new()
+    };
+
+    let res = match output {
+        ThemedCompileOutput::Light(out) => {
+            let filename = get_data(out)?;
+            format!("<img src=\"{filename}\"{alt}>")
+        }
+        ThemedCompileOutput::Dark(out) => {
+            let filename = get_data(out)?;
+            format!("<img src=\"{filename}\"{alt}>")
+        }
+        ThemedCompileOutput::Both { light, dark } => {
+            let light_file = get_data(light)?;
+            let dark_file = get_data(dark)?;
+            format!(
+                r#"
+                <img src="{light_file}"{alt} class="lighttheme">
+                <img src="{dark_file}"{alt} class="darktheme">
+            "#
+            )
+        }
+    };
+
+    Ok(res)
+}
+
 /// Create Anki notes from file
 #[derive(clap::Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -363,16 +404,18 @@ enum Commands {
 #[derive(Debug, clap::Args)]
 struct CreateArgs {
     /// Set the theme for images
-    #[arg(long, value_enum, default_value_t = Theme::Dark)]
+    #[arg(long, value_enum, default_value_t = Theme::Both)]
     theme: Theme,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, clap::ValueEnum)]
 enum Theme {
-    // Use dark theme
+    // Create cards with dark theme
     Dark,
-    // Use light theme
+    // Create cards with dark theme
     Light,
+    // Create cards with light and cards with dark theme
+    Both,
 }
 
 fn main() -> Result<()> {

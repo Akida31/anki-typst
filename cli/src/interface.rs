@@ -7,15 +7,25 @@ pub struct CompileOutput {
     pub files: BTreeMap<usize, (String, String)>,
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum ThemedCompileOutput {
+    Light(CompileOutput),
+    Dark(CompileOutput),
+    Both {
+        light: CompileOutput,
+        dark: CompileOutput,
+    },
+}
+
 mod cli {
     use std::collections::BTreeMap;
     use std::process::Command;
 
-    use crate::interface::CompileOutput;
     use color_eyre::eyre::{bail, eyre, Context, OptionExt};
     use color_eyre::Result;
     use tracing::{debug, error, warn};
 
+    use crate::interface::{CompileOutput, ThemedCompileOutput};
     use crate::metadata::Metadata;
     use crate::Theme;
 
@@ -49,7 +59,20 @@ mod cli {
         Ok(res.stdout)
     }
 
-    pub fn compile(path: &str, theme: Theme) -> Result<CompileOutput> {
+    pub fn compile(path: &str, theme: Theme) -> Result<ThemedCompileOutput> {
+        match theme {
+            Theme::Dark => compile_inner(path, theme).map(ThemedCompileOutput::Dark),
+            Theme::Light => compile_inner(path, theme).map(ThemedCompileOutput::Light),
+            Theme::Both => {
+                let light = compile_inner(path, Theme::Light)?;
+                let dark = compile_inner(path, Theme::Dark)?;
+
+                Ok(ThemedCompileOutput::Both { light, dark })
+            }
+        }
+    }
+
+    pub fn compile_inner(path: &str, theme: Theme) -> Result<CompileOutput> {
         let tempdir = tempfile::tempdir().context("create temporary compile output directory")?;
         let output = tempdir.path().join("page{n}.svg");
         let output = output
@@ -60,6 +83,7 @@ mod cli {
             match theme {
                 Theme::Dark => "dark",
                 Theme::Light => "light",
+                Theme::Both => bail!("theme both should be handled elsewhere"),
             }
         );
         let args = &[
