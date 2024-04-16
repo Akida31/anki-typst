@@ -14,24 +14,25 @@ mod cli {
     use crate::interface::CompileOutput;
     use color_eyre::eyre::{bail, eyre, Context, OptionExt};
     use color_eyre::Result;
-    use tracing::{error, warn};
+    use tracing::{debug, error, warn};
 
     use crate::metadata::Metadata;
     use crate::Theme;
 
     fn run_cmd(args: &[&str]) -> Result<Vec<u8>> {
-        let fmt_cmd = || format!("typst {}", args.join(" "));
+        let fmt_cmd = format!("typst {}", args.join(" "));
+        debug!("running {}", fmt_cmd);
         let mut cmd = Command::new("typst");
         cmd.args(args);
         let res = cmd
             .output()
-            .map_err(|e| eyre!("can't run typst command `{}`: {}", fmt_cmd(), e))?;
+            .map_err(|e| eyre!("can't run typst command `{}`: {}", fmt_cmd, e))?;
 
         if !res.status.success() {
             return Err(eyre!(
                 "typst returned error code {} for command {}.\nStdout:\n{}\nStderr:\n{}",
                 res.status,
-                fmt_cmd(),
+                fmt_cmd,
                 String::from_utf8_lossy(&res.stdout),
                 String::from_utf8_lossy(&res.stderr)
             ));
@@ -40,7 +41,7 @@ mod cli {
         if !res.stderr.is_empty() {
             warn!(
                 "typst command {} had non-empty stderr:\n{}",
-                fmt_cmd(),
+                fmt_cmd,
                 String::from_utf8_lossy(&res.stderr)
             );
         }
