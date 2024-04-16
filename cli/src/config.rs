@@ -88,14 +88,14 @@ impl Config {
         if !self.file_include.is_empty() {
             if !self.file_include.iter().any(|r| r.re.is_match(path)) {
                 info!(
-                "ignoring {} because it is not included (regex={})",
-                path,
-                self.file_include
-                    .iter()
-                    .map(|r| format!("\"{}\"", r.re_str))
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            );
+                    "ignoring {} because it is not included (regex={})",
+                    path,
+                    self.file_include
+                        .iter()
+                        .map(|r| format!("\"{}\"", r.re_str))
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                );
                 return true;
             }
         }

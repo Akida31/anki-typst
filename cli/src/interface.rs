@@ -17,6 +17,7 @@ mod cli {
     use tracing::{error, warn};
 
     use crate::metadata::Metadata;
+    use crate::Theme;
 
     fn run_cmd(args: &[&str]) -> Result<Vec<u8>> {
         let fmt_cmd = || format!("typst {}", args.join(" "));
@@ -47,13 +48,28 @@ mod cli {
         Ok(res.stdout)
     }
 
-    pub fn compile(path: &str) -> Result<CompileOutput> {
+    pub fn compile(path: &str, theme: Theme) -> Result<CompileOutput> {
         let tempdir = tempfile::tempdir().context("create temporary compile output directory")?;
         let output = tempdir.path().join("page{n}.svg");
         let output = output
             .to_str()
             .ok_or_eyre("tempdir path must be valid utf-8")?;
-        let args = &["compile", path, output, "--input", "export=true"];
+        let theme_str = format!(
+            "theme={}",
+            match theme {
+                Theme::Dark => "dark",
+                Theme::Light => "light",
+            }
+        );
+        let args = &[
+            "compile",
+            path,
+            output,
+            "--input",
+            "export=true",
+            "--input",
+            &theme_str,
+        ];
         let stdout = run_cmd(args)?;
 
         if !stdout.is_empty() {

@@ -114,7 +114,7 @@ impl State {
     }
 }
 
-fn update_change(state: &mut State, config: &Config, path: &Path) -> Result<()> {
+fn update_change(state: &mut State, config: &Config, path: &Path, args: &CreateArgs) -> Result<()> {
     let path_str = path.to_string_lossy();
     if config.is_ignored(&path_str) {
         return Ok(());
@@ -128,7 +128,7 @@ fn update_change(state: &mut State, config: &Config, path: &Path) -> Result<()> 
             .with_note(|| eyre!("while collecting children of {}", path.display()))?;
         for read_dir in children {
             let new_path = read_dir?.path();
-            update_change(state, config, &new_path)?;
+            update_change(state, config, &new_path, args)?;
         }
 
         return Ok(());
@@ -151,7 +151,7 @@ fn update_change(state: &mut State, config: &Config, path: &Path) -> Result<()> 
     debug!("getting metadata for file {}", path.display());
     let metadata = query(&path_str)?;
     debug!("compiling file {}", path.display());
-    let output = compile(&path_str)?;
+    let output = compile(&path_str, args.theme)?;
     debug!("finished compiling file");
 
     let mut note_decks: HashMap<String, (Vec<_>, Vec<_>)> = HashMap::new();
@@ -339,10 +339,10 @@ struct Args {
 #[derive(Debug, clap::Subcommand)]
 enum Commands {
     /// Watch for changes and create new notes
-    Watch,
+    Watch(CreateArgs),
     /// Create new notes
     #[clap(visible_alias = "c")]
-    Create,
+    Create(CreateArgs),
     /// Create all decks in the file if they don't exist already
     CreateAllDecks,
     /// Get all deck names
@@ -358,6 +358,21 @@ enum Commands {
     /// Sync all notes to ankiweb
     #[clap(visible_alias = "s")]
     Sync,
+}
+
+#[derive(Debug, clap::Args)]
+struct CreateArgs {
+    /// Set the theme for images
+    #[arg(long, value_enum, default_value_t = Theme::Light)]
+    theme: Theme,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, clap::ValueEnum)]
+enum Theme {
+    // Use dark theme
+    Dark,
+    // Use light theme
+    Light,
 }
 
 fn main() -> Result<()> {
@@ -388,10 +403,10 @@ fn main() -> Result<()> {
     let Args { subcommand, .. } = args;
 
     match subcommand {
-        Commands::Watch => watch(&config, &main_path)?,
-        Commands::Create => {
+        Commands::Watch(args) => watch(&config, &main_path, &args)?,
+        Commands::Create(args) => {
             let mut state = State::new()?;
-            update_change(&mut state, &config, &main_path)?;
+            update_change(&mut state, &config, &main_path, &args)?;
         }
         Commands::GetDecks => {
             let names = get_deck_names()?;
@@ -434,9 +449,9 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn watch(config: &Config, path: &Path) -> Result<()> {
+fn watch(config: &Config, path: &Path, args: &CreateArgs) -> Result<()> {
     let mut state = State::new()?;
-    update_change(&mut state, config, path)?;
+    update_change(&mut state, config, path, args)?;
 
     let (tx, rx) = std::sync::mpsc::channel();
 
@@ -452,7 +467,7 @@ fn watch(config: &Config, path: &Path) -> Result<()> {
             EventKind::Create(_) => error!("file was created but should have existed before"),
             // TODO finer
             EventKind::Modify(_) => {
-                if let Err(e) = update_change(&mut state, config, path) {
+                if let Err(e) = update_change(&mut state, config, path, args) {
                     error!("{:#?}", e);
                 }
             }
@@ -464,7 +479,7 @@ fn watch(config: &Config, path: &Path) -> Result<()> {
                 watcher.watch(path, RecursiveMode::Recursive)?;
                 if !path.is_file() {
                     error!("file was removed.");
-                } else if let Err(e) = update_change(&mut state, config, path) {
+                } else if let Err(e) = update_change(&mut state, config, path, args) {
                     error!("{}", e);
                 }
             }
