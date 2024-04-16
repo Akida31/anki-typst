@@ -4,6 +4,8 @@
     export: false,
     date: none,
     title: none,
+    prefix_deck_names_with_numbers: false,
+    title_as_deck_name: false,
   ),
 )
 
@@ -35,10 +37,6 @@
 #let is_export() = {
   // anki_config.display(val => f(val.export))
   get_val_from_sys("export")
-}
-
-#let get_title(f) = {
-  anki_config.display(val => f(val.title))
 }
 
 #let set_date(val) = {

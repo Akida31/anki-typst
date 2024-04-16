@@ -1,4 +1,4 @@
-#import "config.typ": is_export, get_title
+#import "config.typ": is_export, anki_config
 #import "raw.typ"
 #import "utils.typ": assert_ty, to_plain, to_string
 
@@ -30,7 +30,7 @@
   })
 }
 
-#let _get_headings(loc) = {
+#let _get_headings(loc, prefix_deck_names_with_numbers) = {
   let levels = ()
   let elems = query(selector(heading).before(loc))
   for elem in elems {
@@ -50,6 +50,14 @@
       ))
     }
   }
+  if prefix_deck_names_with_numbers {
+    let numbers = counter(heading).at(loc)
+    levels = numbers.zip(levels).map(args => {
+      let (number, body) = args
+      str(number) + " - " + body
+    })
+  }
+  
   levels.join("::")
 }
 
@@ -63,16 +71,19 @@
 ) = {
   let _ = assert_ty("tags", tags, array)
   anki_state.display(state => {
-    get_title(title => {
+    anki_config.display(config => {
       locate(loc => {
         let deck = if deck != none {
           deck
         } else if state.deck != none and state.deck != "" {
           state.deck
         } else {
-          let headings = _get_headings(loc)
-          if title != none and title != "" {
-            title + "::" + headings
+          let headings = _get_headings(
+            loc,
+            config.prefix_deck_names_with_numbers,
+          )
+          if config.title_as_deck_name and config.title != none and config.title != "" {
+            config.title + "::" + headings
           } else {
             headings
           }
