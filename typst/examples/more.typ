@@ -8,6 +8,8 @@
 #let example = item("Example", initial_tags: ("example",))
 #let unnumbered = item("Unnumbered", numbering: none)
 
+#anki.theorems.model("some-model")
+
 = Heading
 == Subheading
 #theorem("Euclid")[

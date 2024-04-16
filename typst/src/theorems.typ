@@ -184,21 +184,19 @@
     } else {
       (..initial_tags, ..tags)
     }
-    let cont = is_export(export => {
-      _item_inner(
-        export,
-        name,
-        identifier,
-        base_level: base_level,
-        inset: inset,
-        separator: separator,
-        inner_args: (numbering: numbering),
-        ..args,
-      )(
-        front,
-        content,
-      )
-    })
+    let cont = _item_inner(
+      is_export(),
+      name,
+      identifier,
+      base_level: base_level,
+      inset: inset,
+      separator: separator,
+      inner_args: (numbering: numbering),
+      ..args,
+    )(
+      front,
+      content,
+    )
     let meta = anki_thm(
       front,
       deck: deck,
@@ -242,7 +240,8 @@
       (..initial_tags, ..tags)
     }
     
-    let cont = is_export(export => {
+    let cont = {
+      let export = is_export()
       _item_inner(
         export,
         name,
@@ -271,7 +270,7 @@
           ..proof_args,
         ).with(numbering: none)(proof)
       }
-    })
+    }
     let meta = anki_thm(
       front,
       deck: deck,

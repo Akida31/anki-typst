@@ -1,5 +1,6 @@
 #import "raw.typ": anki_export
-#import "config.typ": set_export_from_sys, set_date, is_export
+#import "config.typ"
+#import config: set_date, is_export
 #import "theorems.typ"
 
 #let setup(
@@ -18,18 +19,16 @@
     conf
   })
   
-  config.is_export(export => {
-    let doc = if enable_theorems {
-      show: theorems.setup
-      doc
-    } else {
-      doc
-    }
-    if export {
-      set page(margin: 0.5cm, height: auto)
-      doc
-    } else {
-      doc
-    }
-  })
+  let doc = if enable_theorems {
+    show: theorems.setup
+    doc
+  } else {
+    doc
+  }
+  if is_export() {
+    set page(margin: 0.5cm, height: auto)
+    doc
+  } else {
+    doc
+  }
 }

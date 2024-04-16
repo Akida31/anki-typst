@@ -7,6 +7,23 @@
   ),
 )
 
+#let get_val_from_sys(
+  key,
+  default: false,
+  options: (
+    (true, (true, "true", "yes")),
+    (false, (none, false, "false", "no")),
+  ),
+) = {
+  let val = sys.inputs.at(key, default: default)
+  for (key, vals) in options {
+    if vals.contains(val) {
+      return key
+    }
+  }
+  panic("unexpected value for key " + key + ": " + val)
+}
+
 #let set_export(val) = {
   anki_config.update(conf => {
     conf.export = val
@@ -14,8 +31,10 @@
   })
 }
 
-#let is_export(f) = {
-  anki_config.display(val => f(val.export))
+// TODO use this from state
+#let is_export() = {
+  // anki_config.display(val => f(val.export))
+  get_val_from_sys("export")
 }
 
 #let get_title(f) = {
@@ -30,13 +49,6 @@
 }
 
 #let set_export_from_sys() = {
-  let val = sys.inputs.at("export", default: false)
-  let val = if (true, "true", "yes").contains(val) {
-    true
-  } else if (none, false, "false", "no").contains(val) {
-    false
-  } else {
-    panic("unexpected export value: " + val)
-  }
+  let val = get_val_from_sys("export")
   set_export(val)
 }
