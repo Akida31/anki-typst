@@ -30,6 +30,21 @@
   })
 }
 
+#let set_thmcounter(heading: none, items: none) = {
+  if heading != none {
+    counter(_heading).update(heading)
+  }
+  ct.thmcounters.update(val => {
+    if heading != none {
+      val.counters.heading = heading
+    }
+    if items != none {
+      val.counters.items = items
+    }
+    val
+  })
+}
+
 #let _get_headings(loc, prefix_deck_names_with_numbers) = {
   let levels = ()
   let elems = query(selector(heading).before(loc))
