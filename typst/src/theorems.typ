@@ -180,8 +180,9 @@
     return inner
   } else {
     if overwrite_number != none {
+      let title = item_name
       if type(overwrite_number) == function {
-        titlefmt = title => ct.thmcounters.display(x => {
+        titlefmt = _ => ct.thmcounters.display(x => {
           let number = none
           if numbering != none {
             number = _global_numbering(numbering, ..x.at("latest"))
@@ -190,7 +191,7 @@
           titlefmt[#title #number]
         })
       } else {
-        titlefmt = title => titlefmt[#title #overwrite_number]
+        titlefmt = _ => titlefmt[#title #overwrite_number]
       }
     }
     let inner(name, content) = [
