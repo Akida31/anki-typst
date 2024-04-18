@@ -138,6 +138,8 @@
   inner_args: (:),
   base: "heading",
   base_level: none,
+  create_item_label: true,
+  item_label_prefix: "",
   ..args,
 ) = {
   let item_name = name
@@ -147,8 +149,8 @@
       let _ = args_named.remove(key, default: none)
     }
     let args_pos = args.pos()
-    let inner(name, content) = {
-      ct.thmenv(
+    let inner(name, content) = [
+      #ct.thmenv(
         "items",
         base,
         base_level,
@@ -156,19 +158,27 @@
         ..args_pos,
         ..args_named,
       )(name, content, supplement: name, ..inner_args)
-    }
+      #if create_item_label {
+        let name = item_label_prefix + name
+        label(name)
+      }
+    ]
     
     return inner
   } else {
-    let inner(name, content) = {
-      ct.thmbox(
+    let inner(name, content) = [
+      #ct.thmbox(
         "items",
         item_name,
         base: base,
         base_level: base_level,
         ..args,
       )(name, content, ..inner_args)
-    }
+      #if create_item_label {
+        let name = item_label_prefix + name
+        label(name)
+      }
+    ]
     
     return inner
   }
@@ -179,10 +189,8 @@
   content,
   identifier,
   numbering,
-  create_item_label,
-  item_label_prefix,
-) = [
-  #figure(
+) = {
+  figure(
     content + [#metadata(identifier) <meta:anki-thmenvcounter>],
     placement: none,
     caption: none,
@@ -192,11 +200,7 @@
     gap: 0em,
     outlined: false,
   )
-  #if create_item_label {
-    let name = item_label_prefix + name
-    label(name)
-  }
-]
+}
 
 #let item(
   name,
@@ -228,6 +232,8 @@
       name,
       identifier,
       base_level: base_level,
+      create_item_label: create_item_label,
+      item_label_prefix: item_label_prefix,
       inset: inset,
       separator: separator,
       inner_args: (numbering: numbering),
@@ -251,8 +257,6 @@
       cont + meta,
       name,
       numbering,
-      create_item_label,
-      item_label_prefix,
     )
   }
   return inner
@@ -295,6 +299,8 @@
         name,
         identifier,
         base_level: base_level,
+        create_item_label: create_item_label,
+        item_label_prefix: item_label_prefix,
         inset: inset,
         separator: separator,
         inner_args: (numbering: numbering),
@@ -335,8 +341,6 @@
       cont + meta,
       name,
       numbering,
-      create_item_label,
-      item_label_prefix,
     )
   }
   
