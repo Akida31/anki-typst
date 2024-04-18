@@ -82,6 +82,7 @@
   deck: none,
   model: none,
   numbering: "1.1",
+  overwrite_number: none,
   ..fields,
 ) = {
   let _ = assert_ty("tags", tags, array)
@@ -114,7 +115,9 @@
         
         ct.thmcounters.display(x => {
           let number = none
-          if numbering != none {
+          if overwrite_number != none {
+            number = overwrite_number
+          } else if numbering != none {
             number = _global_numbering(numbering, ..x.at("latest"))
           }
           raw.anki_export(
@@ -141,6 +144,8 @@
   breakable: true,
   create_item_label: true,
   item_label_prefix: "",
+  overwrite_number: none,
+  titlefmt: strong,
   ..args,
 ) = {
   let item_name = name
@@ -168,6 +173,9 @@
     
     return inner
   } else {
+    if overwrite_number != none {
+      titlefmt = x => titlefmt[#x #overwrite_number]
+    }
     let inner(name, content) = [
       #ct.thmbox(
         "items",
@@ -175,6 +183,7 @@
         base: base,
         base_level: base_level,
         breakable: breakable,
+        titlefmt: titlefmt,
         ..args,
       )(name, content, ..inner_args)
       #if create_item_label {
@@ -224,7 +233,11 @@
     deck: none,
     model: none,
     clear_tags: false,
+    overwrite_number: none,
   ) = {
+    if overwrite_number != none {
+      numbering = none
+    }
     let tags = if clear_tags {
       tags
     } else {
@@ -239,6 +252,7 @@
       item_label_prefix: item_label_prefix,
       inset: inset,
       separator: separator,
+      overwrite_number: overwrite_number,
       inner_args: (numbering: numbering),
       ..args,
     )(
@@ -253,6 +267,7 @@
       front: front,
       back: content,
       numbering: numbering,
+      overwrite_number: overwrite_number,
     )
     
     _make_referencable(
@@ -288,7 +303,11 @@
     deck: none,
     model: none,
     clear_tags: false,
+    overwrite_number: none,
   ) = {
+    if overwrite_number != none {
+      numbering = none
+    }
     let tags = if clear_tags {
       tags
     } else {
@@ -306,6 +325,7 @@
         item_label_prefix: item_label_prefix,
         inset: inset,
         separator: separator,
+        overwrite_number: overwrite_number,
         inner_args: (numbering: numbering),
         ..item_args,
       )(
@@ -337,6 +357,7 @@
       back: content,
       proof: proof,
       numbering: numbering,
+      overwrite_number: overwrite_number,
     )
     
     _make_referencable(
