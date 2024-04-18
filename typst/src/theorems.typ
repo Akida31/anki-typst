@@ -138,6 +138,7 @@
   inner_args: (:),
   base: "heading",
   base_level: none,
+  breakable: true,
   create_item_label: true,
   item_label_prefix: "",
   ..args,
@@ -149,6 +150,7 @@
       let _ = args_named.remove(key, default: none)
     }
     let args_pos = args.pos()
+    // not really used, just there to keep numbering
     let inner(name, content) = [
       #ct.thmenv(
         "items",
@@ -172,6 +174,7 @@
         item_name,
         base: base,
         base_level: base_level,
+        breakable: breakable,
         ..args,
       )(name, content, ..inner_args)
       #if create_item_label {
