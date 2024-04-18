@@ -115,10 +115,15 @@
         
         ct.thmcounters.display(x => {
           let number = none
-          if overwrite_number != none {
-            number = overwrite_number
-          } else if numbering != none {
+          if numbering != none {
             number = _global_numbering(numbering, ..x.at("latest"))
+          }
+          if overwrite_number != none {
+            if type(overwrite_number) == function {
+              number = overwrite_number(number)
+            } else {
+              number = overwrite_number
+            }
           }
           raw.anki_export(
             id: id,
@@ -146,6 +151,7 @@
   item_label_prefix: "",
   overwrite_number: none,
   titlefmt: strong,
+  numbering: "1.1",
   ..args,
 ) = {
   let item_name = name
@@ -164,7 +170,7 @@
         (..args) => [],
         ..args_pos,
         ..args_named,
-      )(name, content, supplement: name, ..inner_args)
+      )(name, content, supplement: name, numbering: numbering, ..inner_args)
       #if create_item_label {
         let name = item_label_prefix + name
         label(name)
@@ -174,7 +180,18 @@
     return inner
   } else {
     if overwrite_number != none {
-      titlefmt = x => titlefmt[#x #overwrite_number]
+      if type(overwrite_number) == function {
+        titlefmt = title => ct.thmcounters.display(x => {
+          let number = none
+          if numbering != none {
+            number = _global_numbering(numbering, ..x.at("latest"))
+          }
+          number = overwrite_number(number)
+          titlefmt[#title #number]
+        })
+      } else {
+        titlefmt = title => titlefmt[#title #overwrite_number]
+      }
     }
     let inner(name, content) = [
       #ct.thmbox(
@@ -185,7 +202,7 @@
         breakable: breakable,
         titlefmt: titlefmt,
         ..args,
-      )(name, content, ..inner_args)
+      )(name, content, numbering: numbering, ..inner_args)
       #if create_item_label {
         let name = item_label_prefix + name
         label(name)
@@ -235,9 +252,6 @@
     clear_tags: false,
     overwrite_number: none,
   ) = {
-    if overwrite_number != none {
-      numbering = none
-    }
     let tags = if clear_tags {
       tags
     } else {
@@ -274,7 +288,11 @@
       front,
       cont + meta,
       name,
-      numbering,
+      if overwrite_number != none {
+        none
+      } else {
+        numbering
+      },
     )
   }
   return inner
@@ -305,9 +323,6 @@
     clear_tags: false,
     overwrite_number: none,
   ) = {
-    if overwrite_number != none {
-      numbering = none
-    }
     let tags = if clear_tags {
       tags
     } else {
@@ -364,7 +379,11 @@
       front,
       cont + meta,
       name,
-      numbering,
+      if overwrite_number != none {
+        none
+      } else {
+        numbering
+      },
     )
   }
   
