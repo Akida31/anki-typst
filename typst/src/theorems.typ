@@ -174,8 +174,15 @@
   }
 }
 
-#let _make_referencable(content, identifier, numbering) = {
-  figure(
+#let _make_referencable(
+  name,
+  content,
+  identifier,
+  numbering,
+  create_item_label,
+  item_label_prefix,
+) = [
+  #figure(
     content + [#metadata(identifier) <meta:anki-thmenvcounter>],
     placement: none,
     caption: none,
@@ -185,7 +192,11 @@
     gap: 0em,
     outlined: false,
   )
-}
+  #if create_item_label {
+    let name = item_label_prefix + name
+    label(name)
+  }
+]
 
 #let item(
   name,
@@ -195,6 +206,8 @@
   inset: 0em,
   separator: [*.* #h(0.1em)],
   numbering: "1.1",
+  create_item_label: true,
+  item_label_prefix: "",
   ..args,
 ) = {
   let inner(
@@ -233,7 +246,14 @@
       numbering: numbering,
     )
     
-    _make_referencable(cont + meta, name, numbering)
+    _make_referencable(
+      front,
+      cont + meta,
+      name,
+      numbering,
+      create_item_label,
+      item_label_prefix,
+    )
   }
   return inner
 }
@@ -250,6 +270,8 @@
   inset: 0em,
   separator: [*.* #h(0.1em)],
   numbering: "1.1",
+  create_item_label: true,
+  item_label_prefix: "",
 ) = {
   let inner(
     front,
@@ -308,7 +330,14 @@
       numbering: numbering,
     )
     
-    _make_referencable(cont + meta, name, numbering)
+    _make_referencable(
+      front,
+      cont + meta,
+      name,
+      numbering,
+      create_item_label,
+      item_label_prefix,
+    )
   }
   
   return inner
