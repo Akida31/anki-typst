@@ -81,7 +81,7 @@
   deck: none,
   model: none,
   numbering: "1.1",
-  overwrite_number: none,
+  number: auto,
   ..fields,
 ) = {
   let _ = assert_ty("tags", tags, array)
@@ -113,16 +113,12 @@
         }
         
         ct.thmcounters.display(x => {
-          let number = none
-          if numbering != none {
-            number = _global_numbering(numbering, ..x.at("latest"))
-          }
-          if overwrite_number != none {
-            if type(overwrite_number) == function {
-              number = overwrite_number(number)
-            } else {
-              number = overwrite_number
-            }
+          let number = if number != auto {
+            number
+          } else if numbering != none {
+            _global_numbering(numbering, ..x.at("latest"))
+          } else {
+            none
           }
           raw.anki_export(
             id: id,
@@ -148,8 +144,7 @@
   breakable: true,
   create_item_label: true,
   item_label_prefix: "",
-  overwrite_number: none,
-  titlefmt: strong,
+  number: auto,
   numbering: "1.1",
   ..args,
 ) = {
@@ -160,11 +155,6 @@
       let _ = args_named.remove(key, default: none)
     }
     let args_pos = args.pos()
-    let numbering = if overwrite_number != none {
-      none
-    } else {
-      numbering
-    }
     // not really used, just there to keep numbering
     let inner(name, content) = [
       #ct.thmenv(
@@ -174,7 +164,7 @@
         (..args) => [],
         ..args_pos,
         ..args_named,
-      )(name, content, supplement: name, numbering: numbering, ..inner_args)
+      )(name, content, supplement: name, number: number, numbering: numbering, ..inner_args)
       #if create_item_label {
         let name = item_label_prefix + name
         label(name)
@@ -183,26 +173,6 @@
     
     return inner
   } else {
-    if overwrite_number != none {
-      let title = item_name
-      if type(overwrite_number) == function {
-        titlefmt = _ => ct.thmcounters.display(x => {
-          let number = none
-          if numbering != none {
-            number = _global_numbering(numbering, ..x.at("latest"))
-          }
-          number = overwrite_number(number)
-          titlefmt[#title #number]
-        })
-      } else {
-        titlefmt = _ => titlefmt[#title #overwrite_number]
-      }
-    }
-    let numbering = if overwrite_number != none {
-      none
-    } else {
-      numbering
-    }
     let inner(name, content) = [
       #ct.thmbox(
         "items",
@@ -210,9 +180,8 @@
         base: base,
         base_level: base_level,
         breakable: breakable,
-        titlefmt: titlefmt,
         ..args,
-      )(name, content, numbering: numbering, ..inner_args)
+      )(name, content, number: number, numbering: numbering, ..inner_args)
       #if create_item_label {
         let name = item_label_prefix + name
         label(name)
@@ -260,7 +229,7 @@
     deck: none,
     model: none,
     clear_tags: false,
-    overwrite_number: none,
+    number: auto,
   ) = {
     let tags = if clear_tags {
       tags
@@ -276,7 +245,7 @@
       item_label_prefix: item_label_prefix,
       inset: inset,
       separator: separator,
-      overwrite_number: overwrite_number,
+      number: number,
       inner_args: (numbering: numbering),
       ..args,
     )(
@@ -291,18 +260,14 @@
       front: front,
       back: content,
       numbering: numbering,
-      overwrite_number: overwrite_number,
+      number: number,
     )
     
     _make_referencable(
       front,
       cont + meta,
       name,
-      if overwrite_number != none {
-        none
-      } else {
-        numbering
-      },
+      numbering,
     )
   }
   return inner
@@ -331,7 +296,7 @@
     deck: none,
     model: none,
     clear_tags: false,
-    overwrite_number: none,
+    number: auto,
   ) = {
     let tags = if clear_tags {
       tags
@@ -350,7 +315,7 @@
         item_label_prefix: item_label_prefix,
         inset: inset,
         separator: separator,
-        overwrite_number: overwrite_number,
+        number: number,
         inner_args: (numbering: numbering),
         ..item_args,
       )(
@@ -382,18 +347,14 @@
       back: content,
       proof: proof,
       numbering: numbering,
-      overwrite_number: overwrite_number,
+      number: number,
     )
     
     _make_referencable(
       front,
       cont + meta,
       name,
-      if overwrite_number != none {
-        none
-      } else {
-        numbering
-      },
+      numbering,
     )
   }
   
