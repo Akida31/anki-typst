@@ -57,7 +57,7 @@
         got_non_empty = val
       }
     }
-    got_non_empty
+    to_plain(got_non_empty)
   } else {
     none
   }
