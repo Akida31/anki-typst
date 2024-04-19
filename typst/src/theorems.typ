@@ -3,7 +3,6 @@
 #import "utils.typ": assert_ty, to_plain, to_string
 
 #import "@preview/ctheorems:1.1.2" as ct
-#import ct: thmrules
 
 // prevent shadowing
 #let _global_numbering = numbering
@@ -161,6 +160,11 @@
       let _ = args_named.remove(key, default: none)
     }
     let args_pos = args.pos()
+    let numbering = if overwrite_number != none {
+      none
+    } else {
+      numbering
+    }
     // not really used, just there to keep numbering
     let inner(name, content) = [
       #ct.thmenv(
@@ -193,6 +197,11 @@
       } else {
         titlefmt = _ => titlefmt[#title #overwrite_number]
       }
+    }
+    let numbering = if overwrite_number != none {
+      none
+    } else {
+      numbering
     }
     let inner(name, content) = [
       #ct.thmbox(
@@ -392,7 +401,7 @@
 }
 
 #let setup(doc) = {
-  show: thmrules
+  show: ct.thmrules
   
   // copied from ctheorems
   show figure.where(kind: "anki-item"): it => it.body
