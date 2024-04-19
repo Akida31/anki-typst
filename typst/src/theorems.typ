@@ -44,6 +44,23 @@
   })
 }
 
+#let _with_get_number(number, numbering, f) = {
+  if number == auto {
+    f(auto)
+  } else if type(number) == function {
+    ct.thmcounters.display(x => {
+      let prev = if numbering != none {
+        _global_numbering(numbering, ..x.at("latest"))
+      } else {
+        none
+      }
+      f(number(prev))
+    })
+  } else {
+    f(number)
+  }
+}
+
 #let _get_headings(loc, prefix_deck_names_with_numbers) = {
   let levels = ()
   let elems = query(selector(heading).before(loc))
@@ -112,23 +129,18 @@
           "anki-typst"
         }
         
-        ct.thmcounters.display(x => {
-          let number = if number != auto {
-            number
-          } else if numbering != none {
-            _global_numbering(numbering, ..x.at("latest"))
-          } else {
-            none
-          }
-          raw.anki_export(
+        _with_get_number(
+          number,
+          numbering,
+          number => raw.anki_export(
             id: id,
             tags: tags,
             deck: deck,
             model: model,
             number: number,
             ..fields,
-          )
-        })
+          ),
+        )
       })
     })
   })
@@ -156,7 +168,7 @@
     }
     let args_pos = args.pos()
     // not really used, just there to keep numbering
-    let inner(name, content) = [
+    let inner(name, content) = _with_get_number(number, numbering, number => [
       #ct.thmenv(
         "items",
         base,
@@ -164,16 +176,23 @@
         (..args) => [],
         ..args_pos,
         ..args_named,
-      )(name, content, supplement: name, number: number, numbering: numbering, ..inner_args)
+      )(
+        name,
+        content,
+        supplement: name,
+        number: number,
+        numbering: numbering,
+        ..inner_args,
+      )
       #if create_item_label {
         let name = item_label_prefix + name
         label(name)
       }
-    ]
+    ])
     
     return inner
   } else {
-    let inner(name, content) = [
+    let inner(name, content) = _with_get_number(number, numbering, number => [
       #ct.thmbox(
         "items",
         item_name,
@@ -186,7 +205,7 @@
         let name = item_label_prefix + name
         label(name)
       }
-    ]
+    ])
     
     return inner
   }
