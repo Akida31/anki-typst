@@ -44,8 +44,8 @@
   })
 }
 
-#let _with_get_number(number, numbering, f) = {
-  if number == auto {
+#let _with_get_number(number, numbering, f, allow_auto: true) = {
+  if number == auto and allow_auto {
     f(auto)
   } else if type(number) == function {
     ct.thmcounters.display(x => {
@@ -140,6 +140,7 @@
             number: number,
             ..fields,
           ),
+          allow_auto: false,
         )
       })
     })
