@@ -203,8 +203,11 @@
         ..args,
       )(name, content, number: number, numbering: numbering, ..inner_args)
       #if create_item_label {
-        let name = item_label_prefix + name
-        label(name)
+        let name = to_plain(name)
+        if name != none {
+          let name = item_label_prefix + name
+          label(name)
+        }
       }
     ])
     
@@ -272,8 +275,12 @@
       front,
       content,
     )
+    let plain_front = to_plain(front)
+    if plain_front == none {
+      plain_front = front
+    }
     let meta = anki_thm(
-      front,
+      plain_front,
       deck: deck,
       model: model,
       tags: tags,
@@ -358,8 +365,12 @@
         ).with(numbering: none)(proof)
       }
     }
+    let plain_front = to_plain(front)
+    if plain_front == none {
+      plain_front = front
+    }
     let meta = anki_thm(
-      front,
+      plain_front,
       deck: deck,
       model: model,
       tags: tags,

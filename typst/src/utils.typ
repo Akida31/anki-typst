@@ -41,7 +41,11 @@
   } else if c == [] {
     ""
   } else if type(c) == content {
-    if c.fields().len() > 1 {
+    // equation
+    if c.fields().keys() == ("block", "body") {
+      to_plain(c.body)
+    }
+    else if c.fields().len() > 1 {
       none
     } else {
       let val = c.fields().values().first()
