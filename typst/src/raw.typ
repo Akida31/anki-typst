@@ -20,7 +20,10 @@
   assert(model != none)
   let _ = assert_ty("deck", deck, str)
   let _ = assert_ty("model", model, str)
-  
+
+  if type(id) == content {
+    panic("id may not be content but was " + id)
+  }
   let id = str(id)
   
   let fields = fields.named()
