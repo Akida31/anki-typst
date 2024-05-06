@@ -8,7 +8,8 @@ use tracing::{debug, error, info, Level};
 use tracing_subscriber::FmtSubscriber;
 
 use crate::api::{
-    add_notes, get_model_field_names_multi, MediaData, MediaDataInner, SingleOrMulti,
+    add_notes, create_model, get_model_field_names_multi, CreateModelData, MediaData,
+    MediaDataInner, SingleOrMulti,
 };
 use crate::interface::{compile, query, CompileOutput, ThemedCompileOutput};
 use crate::metadata::{Field, Note};
@@ -386,6 +387,11 @@ enum Commands {
     Create(CreateArgs),
     /// Create all decks in the file if they don't exist already
     CreateAllDecks,
+    /// Create the default `anki-typst` model
+    CreateDefaultModel {
+        #[arg(default_value = "anki-typst")]
+        model_name: String,
+    },
     /// Get all deck names
     GetDecks,
     /// Get all model names
@@ -481,6 +487,9 @@ fn main() -> Result<()> {
         }
         Commands::CreateAllDecks => {
             create_all_decks(&main_path)?;
+        }
+        Commands::CreateDefaultModel { model_name } => {
+            create_default_model(&model_name)?;
         }
         Commands::Sync => {
             info!("syncing all notes");
@@ -641,6 +650,58 @@ fn create_all_decks(path: &Path) -> Result<()> {
     if created.is_empty() {
         info!("All decks were already created");
     }
+
+    Ok(())
+}
+
+fn create_default_model(model_name: &str) -> Result<()> {
+    debug!("getting all deck names");
+    let names = get_deck_names()?;
+    if names.0.iter().find(|name| *name == model_name).is_some() {
+        bail!("default model with name {} already exists", model_name);
+    }
+
+    create_model(&CreateModelData {
+        model_name: model_name.into(),
+        in_order_fields: ["front", "back", "proof", "number", "date"]
+            .into_iter()
+            .map(String::from)
+            .collect(),
+        css: String::from(
+            r#"
+.card {
+ font-family: arial;
+ font-size: 20px;
+ text-align: center;
+ color: black;
+ background-color: white;
+}
+
+.darktheme {
+  display: none;
+}
+
+.nightMode .darktheme {
+  display: inline;
+}
+
+.nightMode .lighttheme {
+  display: none;
+}
+"#,
+        ),
+        is_cloze: false,
+        card_templates: vec![HashMap::from_iter(
+            [
+                ("Name", "front+number -> back"),
+                ("Front", "{{front}} - {{number}}"),
+                ("Back", "{{FrontSide}}\n\n<hr id=answer>\n\n{{back}}"),
+            ]
+            .map(|(a, b)| (String::from(a), String::from(b))),
+        )],
+    })?;
+
+    info!("created default model with name {}", model_name);
 
     Ok(())
 }

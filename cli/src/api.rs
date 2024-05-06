@@ -95,6 +95,84 @@ pub fn get_model_names() -> Result<ModelNames> {
     request("modelNames", &empty())
 }
 
+#[derive(Debug, Deserialize)]
+pub struct ModelCreation {
+    // sortf:0,
+    //     did:1,
+    //     "latexPre":"\\documentclass[12pt]{article}\n\\special{papersize=3in,5in}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb,amsmath}\n\\pagestyle{empty}\n\\setlength{\\parindent}{0in}\n\\begin{document}\n",
+    //     "latexPost":"\\end{document}",
+    //     "mod":1551462107,
+    //     "usn":-1,
+    //     "vers":[
+    //
+    //     ],
+    //     "type":0,
+    //     "css":".card {\n font-family: arial;\n font-size: 20px;\n text-align: center;\n color: black;\n background-color: white;\n}\n",
+    //     "name":"TestApiModel",
+    //     "flds":[
+    //         {
+    //             "name":"Field1",
+    //             "ord":0,
+    //             "sticky":false,
+    //             "rtl":false,
+    //             "font":"Arial",
+    //             "size":20,
+    //             "media":[
+    //
+    //             ]
+    //         },
+    //         {
+    //             "name":"Field2",
+    //             "ord":1,
+    //             "sticky":false,
+    //             "rtl":false,
+    //             "font":"Arial",
+    //         "size":20,
+    //         "media":[
+    //
+    //         ]
+    //     }
+    // ],
+    // "tmpls":[
+    //     {
+    //         "name":"My Card 1",
+    //         "ord":0,
+    //         "qfmt":"",
+    //         "afmt":"This is the back of the card {{Field2}}",
+    //         "did":null,
+    //         "bqfmt":"",
+    //         "bafmt":""
+    //     }
+    // ],
+    // "tags":[
+    //
+    // ],
+    // "id":1551462107104,
+    // "req":[
+    //     [
+    //         0,
+    //         "none",
+    //         [
+    //
+    //         ]
+    //     ]
+    // ]
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateModelData {
+    pub model_name: String,
+    pub in_order_fields: Vec<String>,
+    pub css: String,
+    pub is_cloze: bool,
+    pub card_templates: Vec<HashMap<String, String>>,
+}
+
+pub fn create_model(data: &CreateModelData) -> Result<ModelCreation> {
+    request("createModel", data)
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 #[serde(untagged)]
