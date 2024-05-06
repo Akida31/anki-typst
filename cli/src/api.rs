@@ -16,19 +16,20 @@ pub fn request<'a, T: Serialize + 'a, U: for<'de> Deserialize<'de> + std::fmt::D
 
     debug!("requesting action {}", action);
     let request = Request::new(action.clone(), data);
-    let client = reqwest::blocking::Client::new();
-    let res = client
-        .post("http://localhost:8765")
-        .json(&request)
-        .send()
-        .with_note(|| format!("action was {action}"))?;
+    let res = match ureq::post("http://localhost:8765").send_json(&request) {
+        Ok(v) => v,
+        Err(e) => {
+            Err(e)?;
+            todo!()
+        }
+    };
 
     debug!("got response with status {}", res.status());
-    let bytes = res.bytes()?;
-    let res: std::result::Result<types::ReqResult<U>, _> = serde_json::from_slice(&bytes);
+    let raw = res.into_string()?;
+    let res: std::result::Result<types::ReqResult<U>, _> = serde_json::from_str(&raw);
     match res {
         Ok(v) => v.get().with_note(|| format!("action was {action}")),
-        Err(e) => Result::Err(e).with_note(|| format!("body: {}", String::from_utf8_lossy(&bytes))),
+        Err(e) => Result::Err(e).with_note(|| format!("body: {raw}")),
     }
 }
 
