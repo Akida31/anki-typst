@@ -19,8 +19,14 @@ pub fn request<'a, T: Serialize + 'a, U: for<'de> Deserialize<'de> + std::fmt::D
     let res = match ureq::post("http://localhost:8765").send_json(&request) {
         Ok(v) => v,
         Err(e) => {
-            Err(e)?;
-            todo!()
+            if let ureq::Error::Transport(ref t) = e {
+                if t.kind() == ureq::ErrorKind::ConnectionFailed {
+                    return Err(e)
+                        .note("is anki open?")
+                        .note("you also need to install anki-connect: https://ankiweb.net/shared/info/2055492159");
+                }
+            }
+            return Err(e.into());
         }
     };
 
