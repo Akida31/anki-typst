@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use color_eyre::eyre::eyre;
 use color_eyre::{Help, Result};
-use regex::Regex;
+use regex_lite::Regex;
 use serde::Deserialize;
 use tracing::info;
 
