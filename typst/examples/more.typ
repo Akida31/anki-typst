@@ -14,6 +14,8 @@
 #let example = item("Example", initial_tags: ("example",))
 #let unnumbered = item("Unnumbered", numbering: none)
 
+// NOTE that this requires a model named `some-model`. If you just want to try this out you can delete this line.
+// The default model is anki-typst.
 #anki.theorems.model("some-model")
 
 = Heading

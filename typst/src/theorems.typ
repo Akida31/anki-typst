@@ -44,21 +44,24 @@
   })
 }
 
-#let _with_get_number(number, numbering, f, allow_auto: true) = {
+#let _with_get_number(number, numbering, f, allow_auto: false) = {
   if number == auto and allow_auto {
-    f(auto)
-  } else if type(number) == function {
-    ct.thmcounters.display(x => {
-      let prev = if numbering != none {
-        _global_numbering(numbering, ..x.at("latest"))
-      } else {
-        none
-      }
-      f(number(prev))
-    })
-  } else {
-    f(number)
+    return f(auto)
+  } else if number != auto {
+    return f(number)
   }
+  ct.thmcounters.display(x => {
+    let prev = if numbering != none {
+      _global_numbering(numbering, ..x.at("latest"))
+    } else {
+      none
+    }
+    if number == auto {
+      f(prev)
+    } else {
+      f(number(prev))
+    }
+  })
 }
 
 #let _get_headings(loc, prefix_deck_names_with_numbers) = {
@@ -140,7 +143,6 @@
             number: number,
             ..fields,
           ),
-          allow_auto: false,
         )
       })
     })
@@ -169,7 +171,7 @@
     }
     let args_pos = args.pos()
     // not really used, just there to keep numbering
-    let inner(name, content) = _with_get_number(number, numbering, number => [
+    let inner(name, content) = _with_get_number(number, numbering, allow_auto: true, number => [
       #ct.thmenv(
         "items",
         base,
@@ -193,7 +195,7 @@
     
     return inner
   } else {
-    let inner(name, content) = _with_get_number(number, numbering, number => [
+    let inner(name, content) = _with_get_number(number, numbering, allow_auto: true, number => [
       #ct.thmbox(
         "items",
         item_name,
