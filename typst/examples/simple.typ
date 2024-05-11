@@ -13,6 +13,9 @@
 
 = Heading
 == Subheading
+
+// update the item counter manually
+// #anki.theorems.set_thmcounter(items: (3, 5, 7))
 #theorem("Euclid")[
   Theorem-content
 ][

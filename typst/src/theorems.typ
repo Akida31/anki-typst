@@ -29,16 +29,18 @@
   })
 }
 
+// prevent shadowing
+#let _heading = heading
 #let set_thmcounter(heading: none, items: none) = {
-  if heading != none {
-    counter(_heading).update(heading)
+  if heading == none {
+    heading = items.slice(0, -1)
   }
+  counter(_heading).update(heading)
   ct.thmcounters.update(val => {
-    if heading != none {
-      val.counters.heading = heading
-    }
+    val.counters.heading = heading
     if items != none {
       val.counters.items = items
+      val.latest = items
     }
     val
   })
