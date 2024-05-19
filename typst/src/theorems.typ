@@ -49,8 +49,6 @@
 #let _with_get_number(number, numbering, f, allow_auto: false) = {
   if number == auto and allow_auto {
     return f(auto)
-  } else if number != auto {
-    return f(number)
   }
   ct.thmcounters.display(x => {
     let prev = if numbering != none {
@@ -60,8 +58,10 @@
     }
     if number == auto {
       f(prev)
-    } else {
+    } else if type(number) == function {
       f(number(prev))
+    } else {
+      f(number)
     }
   })
 }
