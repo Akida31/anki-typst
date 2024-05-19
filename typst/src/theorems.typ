@@ -15,6 +15,8 @@
   ),
 )
 
+#let secondary_numbering_counter = counter("anki-secondary-numbering")
+
 #let deck(name) = {
   anki_state.update(state => {
     state.deck = name
@@ -46,23 +48,38 @@
   })
 }
 
-#let _with_get_number(number, numbering, f, allow_auto: false) = {
-  if number == auto and allow_auto {
+#let _with_get_number(number, numbering, secondary, secondary_numbering, f, allow_auto: false, step_secondary: true) = {
+  if number == auto and allow_auto and secondary == none {
     return f(auto)
   }
-  ct.thmcounters.display(x => {
-    let prev = if numbering != none {
-      _global_numbering(numbering, ..x.at("latest"))
-    } else {
-      none
+  if secondary == none {
+    secondary_numbering_counter.update(0)
+  }
+  if step_secondary and (secondary == auto or secondary == true) {
+    secondary_numbering_counter.step()
+  }
+  secondary_numbering_counter.display(secondary_counter => {
+    let secondary = secondary
+    if secondary == auto or secondary == true {
+        secondary = _global_numbering(secondary_numbering, secondary_counter)
     }
-    if number == auto {
-      f(prev)
-    } else if type(number) == function {
-      f(number(prev))
-    } else {
-      f(number)
-    }
+    ct.thmcounters.display(x => {
+      let prev = if numbering != none {
+        _global_numbering(numbering, ..x.at("latest"))
+      } else {
+        none
+      }
+      if secondary != none {
+        prev = prev + secondary
+      }
+      if number == auto {
+        f(prev)
+      } else if type(number) == function {
+        f(number(prev))
+      } else {
+        f(number)
+      }
+    })
   })
 }
 
@@ -104,6 +121,8 @@
   model: none,
   numbering: "1.1",
   number: auto,
+  secondary: none,
+  secondary_numbering: "a",
   ..fields,
 ) = {
   let _ = assert_ty("tags", tags, array)
@@ -137,6 +156,9 @@
         _with_get_number(
           number,
           numbering,
+          secondary,
+          secondary_numbering,
+          step_secondary: false,
           number => raw.anki_export(
             id: id,
             tags: tags,
@@ -163,6 +185,8 @@
   item_label_prefix: "",
   number: auto,
   numbering: "1.1",
+  secondary: none,
+  secondary_numbering: "a",
   ..args,
 ) = {
   let item_name = name
@@ -173,7 +197,7 @@
     }
     let args_pos = args.pos()
     // not really used, just there to keep numbering
-    let inner(name, content) = _with_get_number(number, numbering, allow_auto: true, number => [
+    let inner(name, content) = _with_get_number(number, numbering, secondary, secondary_numbering, allow_auto: true, step_secondary: true, number => [
       #ct.thmenv(
         "items",
         base,
@@ -197,7 +221,7 @@
     
     return inner
   } else {
-    let inner(name, content) = _with_get_number(number, numbering, allow_auto: true, number => [
+    let inner(name, content) = _with_get_number(number, numbering, secondary, secondary_numbering,allow_auto: true, step_secondary: true, number => [
       #ct.thmbox(
         "items",
         item_name,
@@ -247,6 +271,7 @@
   numbering: "1.1",
   create_item_label: true,
   item_label_prefix: "",
+  secondary_numbering: "a",
   ..args,
 ) = {
   let inner(
@@ -257,6 +282,7 @@
     model: none,
     clear_tags: false,
     number: auto,
+    secondary: none,
   ) = {
     let tags = if clear_tags {
       tags
@@ -274,6 +300,8 @@
       separator: separator,
       number: number,
       inner_args: (numbering: numbering),
+      secondary: secondary,
+      secondary_numbering: secondary_numbering,
       ..args,
     )(
       front,
@@ -292,6 +320,8 @@
       back: content,
       numbering: numbering,
       number: number,
+      secondary: secondary,
+      secondary_numbering: secondary_numbering,
     )
     
     _make_referencable(
@@ -316,6 +346,7 @@
   inset: 0em,
   separator: [*.* #h(0.1em)],
   numbering: "1.1",
+  secondary_numbering: "a",
   create_item_label: true,
   item_label_prefix: "",
 ) = {
@@ -328,6 +359,7 @@
     model: none,
     clear_tags: false,
     number: auto,
+    secondary: none,
   ) = {
     let tags = if clear_tags {
       tags
@@ -347,6 +379,8 @@
         inset: inset,
         separator: separator,
         number: number,
+        secondary: secondary,
+        secondary_numbering: secondary_numbering,
         inner_args: (numbering: numbering),
         ..item_args,
       )(
@@ -383,6 +417,8 @@
       proof: proof,
       numbering: numbering,
       number: number,
+      secondary: secondary,
+      secondary_numbering: secondary_numbering,
     )
     
     _make_referencable(

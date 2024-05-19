@@ -6,6 +6,7 @@
 
 #let theorem = item_with_proof("Theorem", "Proof", initial_tags: ("proof",))
 #let example = item("Example", initial_tags: ("example",))
+#let definition = item("Definition", initial_tags: ("definition",))
 
 = Heading1
 
@@ -14,6 +15,7 @@
 ][
   This is a proof
 ]
+
 #example("Numbered part 2", number: n => "?" + n + "!")[
   This is numbered differently depending on the current number
 ]
@@ -25,4 +27,20 @@
 #example("Pythagoras")[
   Did you know?
   $ a^2 + b^2 = c^2 $
+]
+
+#example("triangle", secondary: auto)[
+  #sym.triangle.tr.filled
+]
+
+#example("another triangle", secondary: auto)[
+  #sym.triangle.t.stroked
+]
+
+#definition("Imaginery unit")[
+  We define the Imaginery unit $i$ by its property $i^2 = -1$.
+]
+
+#example("one last triangle", secondary: auto)[
+  #sym.triangle.br.stroked
 ]
