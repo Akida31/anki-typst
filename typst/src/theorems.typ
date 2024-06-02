@@ -48,7 +48,7 @@
   })
 }
 
-#let _with_get_number(number, numbering, secondary, secondary_numbering, f, allow_auto: false, step_secondary: true) = {
+#let _with_get_number(loc, number, numbering, secondary, secondary_numbering, f, allow_auto: false, step_secondary: true) = {
   if number == auto and allow_auto and secondary == none {
     return f(auto)
   }
@@ -58,29 +58,27 @@
   if step_secondary and (secondary == auto or secondary == true) {
     secondary_numbering_counter.step()
   }
-  secondary_numbering_counter.display(secondary_counter => {
-    let secondary = secondary
-    if secondary == auto or secondary == true {
-        secondary = _global_numbering(secondary_numbering, secondary_counter)
-    }
-    ct.thmcounters.display(x => {
-      let prev = if numbering != none {
-        _global_numbering(numbering, ..x.at("latest"))
-      } else {
-        none
-      }
-      if secondary != none {
-        prev = prev + secondary
-      }
-      if number == auto {
-        f(prev)
-      } else if type(number) == function {
-        f(number(prev))
-      } else {
-        f(number)
-      }
-    })
-  })
+  let (secondary_counter,) = secondary_numbering_counter.at(loc)
+  let secondary = secondary
+  if secondary == auto or secondary == true {
+      secondary = _global_numbering(secondary_numbering, secondary_counter)
+  }
+  let x = ct.thmcounters.at(loc)
+  let prev = if numbering != none {
+    _global_numbering(numbering, ..x.at("latest"))
+  } else {
+    none
+  }
+  if secondary != none {
+    prev = prev + secondary
+  }
+  if number == auto {
+    f(prev)
+  } else if type(number) == function {
+    f(number(prev))
+  } else {
+    f(number)
+  }
 }
 
 #let _get_headings(loc, prefix_deck_names_with_numbers) = {
@@ -110,7 +108,7 @@
       str(number) + " - " + body
     })
   }
-  
+
   levels.join("::")
 }
 
@@ -125,55 +123,81 @@
   secondary_numbering: "a",
   ..fields,
 ) = {
-  let _ = assert_ty("tags", tags, array)
-  anki_state.display(state => {
-    anki_config.display(config => {
-      locate(loc => {
-        let deck = if deck != none {
-          deck
-        } else if state.deck != none and state.deck != "" {
-          state.deck
-        } else {
-          let headings = _get_headings(
-            loc,
-            config.prefix_deck_names_with_numbers,
-          )
-          if config.title_as_deck_name and config.title != none and config.title != "" {
-            config.title + "::" + headings
-          } else {
-            headings
-          }
-        }
-        
-        let model = if model != none {
-          model
-        } else if state.model != none and state.model != "" {
-          state.model
-        } else {
-          "anki-typst"
-        }
-        
-        _with_get_number(
-          number,
-          numbering,
-          secondary,
-          secondary_numbering,
-          step_secondary: false,
-          number => raw.anki_export(
-            id: id,
-            tags: tags,
-            deck: deck,
-            model: model,
-            number: number,
-            ..fields,
-          ),
-        )
-      })
-    })
+  locate(loc => {
+    anki_thm_with_loc(
+      loc,
+      id,
+      tags: tags,
+      deck: deck,
+      model: model,
+      numbering: numbering,
+      number: number,
+      secondary: secondary,
+      secondary_numbering: secondary_numbering,
+      ..fields
+    )
   })
 }
 
+#let anki_thm_with_loc(
+  loc,
+  id,
+  tags: (),
+  deck: none,
+  model: none,
+  numbering: "1.1",
+  number: auto,
+  secondary: none,
+  secondary_numbering: "a",
+  ..fields,
+) = {
+  let _ = assert_ty("tags", tags, array)
+  let state = anki_state.at(loc)
+  let config = anki_config.at(loc)
+  let deck = if deck != none {
+    deck
+  } else if state.deck != none and state.deck != "" {
+    state.deck
+  } else {
+    let headings = _get_headings(
+      loc,
+      config.prefix_deck_names_with_numbers,
+    )
+    if config.title_as_deck_name and config.title != none and config.title != "" {
+      config.title + "::" + headings
+    } else {
+      headings
+    }
+  }
+
+  let model = if model != none {
+    model
+  } else if state.model != none and state.model != "" {
+    state.model
+  } else {
+    "anki-typst"
+  }
+
+  _with_get_number(
+    loc,
+    number,
+    numbering,
+    secondary,
+    secondary_numbering,
+    step_secondary: false,
+    number => raw.anki_export(
+      id: id,
+      tags: tags,
+      deck: deck,
+      model: model,
+      number: number,
+      ..fields,
+    ),
+  )
+}
+
 #let _item_inner(
+  loc,
   export,
   name,
   identifier,
@@ -197,7 +221,7 @@
     }
     let args_pos = args.pos()
     // not really used, just there to keep numbering
-    let inner(name, content) = _with_get_number(number, numbering, secondary, secondary_numbering, allow_auto: true, step_secondary: true, number => [
+    let inner(name, content) = _with_get_number(loc, number, numbering, secondary, secondary_numbering, allow_auto: true, step_secondary: true, number => [
       #ct.thmenv(
         "items",
         base,
@@ -218,10 +242,10 @@
         label(name)
       }
     ])
-    
+
     return inner
   } else {
-    let inner(name, content) = _with_get_number(number, numbering, secondary, secondary_numbering,allow_auto: true, step_secondary: true, number => [
+    let inner(name, content) = _with_get_number(loc, number, numbering, secondary, secondary_numbering,allow_auto: true, step_secondary: true, number => [
       #ct.thmbox(
         "items",
         item_name,
@@ -238,7 +262,7 @@
         }
       }
     ])
-    
+
     return inner
   }
 }
@@ -313,80 +337,85 @@
       (..initial_tags, ..tags)
     }
 
-    let export = is_export()
-    let cont = {
-      _item_inner(
-        export,
-        name,
-        identifier,
-        base_level: base_level,
-        create_item_label: create_item_label,
-        item_label_prefix: item_label_prefix,
-        inset: inset,
-        separator: separator,
-        number: number,
-        secondary: secondary,
-        secondary_numbering: secondary_numbering,
-        inner_args: (numbering: numbering),
-        ..item_args,
-      )(
-        front,
-        content,
-      )
-      
-      if not export and proof != none {
-        ct.thmplain(
-          proof_identifier,
-          proof_name,
-          // base: "theorem",
-          // TODO prefer these from `proof_args`
-          titlefmt: strong,
-          separator: [*.*#h(0.2em)],
-          bodyfmt: body => [#body #h(1fr) $square$],
-          padding: (top: -0.5em),
-          inset: 0em,
-          ..proof_args,
-        ).with(numbering: none)(proof)
-      }
-    }
-    let plain_front = to_plain(front)
-    if plain_front == none {
-      plain_front = front
-    }
-    let meta = if export {
-      _with_get_number(number, numbering, secondary, secondary_numbering, allow_auto: false, step_secondary: false, number => {
-        let fields = (
-          front: front,
-          back: content,
-          proof: proof,
-        )
-
-        let identifier = id((
-          plain_front: plain_front,
-          deck: deck,
-          model: model,
-          number: number,
-          secondary: secondary,
-          ..fields
-        ))
-        return anki_thm(
+    let cont_meta = locate(loc => {
+      let export = is_export()
+      let cont = {
+        _item_inner(
+          loc,
+          export,
+          name,
           identifier,
-          deck: deck,
-          model: model,
+          base_level: base_level,
+          create_item_label: create_item_label,
+          item_label_prefix: item_label_prefix,
+          inset: inset,
+          separator: separator,
           number: number,
-          numbering: numbering,
           secondary: secondary,
           secondary_numbering: secondary_numbering,
-          tags: tags,
-          ..fields,
+          inner_args: (numbering: numbering),
+          ..item_args,
+        )(
+          front,
+          content,
         )
-      })
-    } else [
-    ]
-    
+
+        if not export and proof != none {
+          ct.thmplain(
+            proof_identifier,
+            proof_name,
+            // base: "theorem",
+            // TODO prefer these from `proof_args`
+            titlefmt: strong,
+            separator: [*.*#h(0.2em)],
+            bodyfmt: body => [#body #h(1fr) $square$],
+            padding: (top: -0.5em),
+            inset: 0em,
+            ..proof_args,
+          ).with(numbering: none)(proof)
+        }
+      }
+      let plain_front = to_plain(front)
+      if plain_front == none {
+        plain_front = front
+      }
+      let meta = if export {
+        _with_get_number(loc, number, numbering, secondary, secondary_numbering, allow_auto: false, step_secondary: false, number => {
+          let fields = (
+            front: front,
+            back: content,
+            proof: proof,
+          )
+
+          let identifier = id((
+            plain_front: plain_front,
+            deck: deck,
+            model: model,
+            number: number,
+            secondary: secondary,
+            ..fields
+          ))
+          return anki_thm_with_loc(
+            loc,
+            identifier,
+            deck: deck,
+            model: model,
+            number: number,
+            numbering: numbering,
+            secondary: secondary,
+            secondary_numbering: secondary_numbering,
+            tags: tags,
+            ..fields,
+          )
+        })
+      } else [
+      ]
+      return cont + meta
+    })
+
     _make_referencable(
       front,
-      cont + meta,
+      cont_meta,
       name,
       numbering,
     )
@@ -397,7 +426,7 @@
 
 #let setup(doc) = {
   show: ct.thmrules
-  
+
   // copied from ctheorems
   show figure.where(kind: "anki-item"): it => it.body
   show ref: it => {
@@ -410,12 +439,12 @@
     if it.element.kind != "anki-item" {
       return it
     }
-    
+
     let supplement = it.element.supplement
     if it.citation.supplement != none {
       supplement = it.citation.supplement
     }
-    
+
     let loc = it.element.location()
     let thms = query(selector(<meta:anki-thmenvcounter>).after(loc), loc)
     let number = ct.thmcounters.at(thms.first().location()).at("latest")
@@ -424,6 +453,6 @@
       [#supplement~#numbering(it.element.numbering, ..number)],
     )
   }
-  
+
   doc
 }
