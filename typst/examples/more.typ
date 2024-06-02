@@ -1,5 +1,5 @@
 #import "../src/lib.typ" as anki
-#import anki.theorems: item, item_with_proof
+#import anki.theorems: item
 
 #show: anki.setup.with(
   set_export_from_sys: true,
@@ -10,7 +10,7 @@
 )
 #set heading(numbering: "1.")
 
-#let theorem = item_with_proof("Theorem", "Proof", initial_tags: ("proof",))
+#let theorem = item("Theorem", proof_name: "Precious Proof", initial_tags: ("proof",))
 #let example = item("Example", initial_tags: ("example",))
 #let unnumbered = item("Unnumbered", numbering: none)
 

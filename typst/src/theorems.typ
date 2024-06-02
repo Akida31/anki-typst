@@ -272,101 +272,46 @@
   create_item_label: true,
   item_label_prefix: "",
   secondary_numbering: "a",
-  ..args,
-) = {
-  let inner(
-    front,
-    content,
-    tags: (),
-    deck: none,
-    model: none,
-    clear_tags: false,
-    number: auto,
-    secondary: none,
-  ) = {
-    let tags = if clear_tags {
-      tags
-    } else {
-      (..initial_tags, ..tags)
-    }
-    let cont = _item_inner(
-      is_export(),
-      name,
-      identifier,
-      base_level: base_level,
-      create_item_label: create_item_label,
-      item_label_prefix: item_label_prefix,
-      inset: inset,
-      separator: separator,
-      number: number,
-      inner_args: (numbering: numbering),
-      secondary: secondary,
-      secondary_numbering: secondary_numbering,
-      ..args,
-    )(
-      front,
-      content,
-    )
-    let plain_front = to_plain(front)
-    if plain_front == none {
-      plain_front = front
-    }
-    let meta = anki_thm(
-      plain_front,
-      deck: deck,
-      model: model,
-      tags: tags,
-      front: front,
-      back: content,
-      numbering: numbering,
-      number: number,
-      secondary: secondary,
-      secondary_numbering: secondary_numbering,
-    )
-    
-    _make_referencable(
-      front,
-      cont + meta,
-      name,
-      numbering,
-    )
-  }
-  return inner
-}
-
-#let item_with_proof(
-  name,
-  proof_name,
-  identifier: "items",
-  proof_identifier: "item",
   item_args: (:),
+
+  proof_name: "Proof",
+  proof_identifier: "item",
   proof_args: (:),
-  initial_tags: (),
-  base_level: 2,
-  inset: 0em,
-  separator: [*.* #h(0.1em)],
-  numbering: "1.1",
-  secondary_numbering: "a",
-  create_item_label: true,
-  item_label_prefix: "",
 ) = {
   let inner(
     front,
     content,
-    proof,
     tags: (),
     deck: none,
     model: none,
     clear_tags: false,
     number: auto,
     secondary: none,
+    ..maybe_proof,
   ) = {
+    let proof = (() => {
+      let pos = maybe_proof.pos()
+      if pos.len() == 0 {
+        for (key, value) in maybe_proof.named() {
+          if key != "proof" {
+            panic("expected only keyword `proof` but got " + str(proof))
+          }
+          return value;
+        }
+        return none
+      }
+      if pos.len() != 1 {
+        panic("expected only one positional (`proof`) argument but got " + str(pos.len()))
+      }
+      return pos.at(0)
+    })()
+
     let tags = if clear_tags {
       tags
     } else {
       (..initial_tags, ..tags)
     }
-    
+
     let cont = {
       let export = is_export()
       _item_inner(
@@ -388,7 +333,7 @@
         content,
       )
       
-      if not export {
+      if not export and proof != none {
         ct.thmplain(
           proof_identifier,
           proof_name,
@@ -428,7 +373,7 @@
       numbering,
     )
   }
-  
+
   return inner
 }
 
