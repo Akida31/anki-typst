@@ -22,8 +22,9 @@ mod cli {
     use std::process::Command;
 
     use color_eyre::eyre::{bail, eyre, Context, OptionExt};
+    use color_eyre::Help;
     use color_eyre::Result;
-    use tracing::{debug, error, warn};
+    use tracing::{debug, error, info, warn};
 
     use crate::interface::{CompileOutput, ThemedCompileOutput};
     use crate::metadata::Metadata;
@@ -167,15 +168,25 @@ mod cli {
     }
 
     pub fn query(path: &str) -> Result<Metadata> {
+        info!("running typst query");
         let json = run_cmd(&["query", path, "<anki-export>", "--input", "export=true"])?;
         let jd = &mut serde_json::Deserializer::from_slice(&json);
 
         serde_path_to_error::deserialize(jd).map_err(|e| {
+            let json_str = match std::str::from_utf8(&json) {
+                Ok(v) => v,
+                Err(e) => {
+                    warn!("typst output is invalid utf-8: {}", e);
+                    &String::from_utf8_lossy(&json)
+                }
+            };
+            debug!("output: {}", json_str);
             eyre!(
                 "cannot deserialize query output at {}: {}",
                 e.path(),
                 e.inner()
             )
+            .suggestion("run with `--log-level debug` to see typsts outptu")
         })
     }
 }
