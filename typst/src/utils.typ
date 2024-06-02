@@ -47,6 +47,8 @@
     }
     else if c.fields().len() > 1 {
       none
+    } else if c.fields().len() == 0 {
+      return ""
     } else {
       let val = c.fields().values().first()
       to_plain(val)
