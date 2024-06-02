@@ -6,7 +6,7 @@
   } else if content == none {
     "none"
   } else if content.has("text") {
-    content.text
+    to_string(content.text)
   } else if content.has("children") {
     content.children.map(to_string).join("")
   } else if content.has("body") {
