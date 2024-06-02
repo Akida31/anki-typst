@@ -64,6 +64,7 @@ pub enum Field {
         page_start: usize,
         page_end: usize,
     },
+    Empty,
 }
 
 impl std::fmt::Display for Field {
@@ -72,6 +73,7 @@ impl std::fmt::Display for Field {
             Self::Raw(val) => val,
             Self::Plain { plain } => plain,
             Self::Content { content, .. } => content,
+            Self::Empty => "",
         })
     }
 }

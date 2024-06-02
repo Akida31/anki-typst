@@ -42,7 +42,7 @@ impl PartialEq<Note> for NoteWithInfo {
                 .iter()
                 .filter(|(_, v)| match v {
                     Field::Raw(v) | Field::Plain { plain: v } => !v.is_empty(),
-                    Field::Content { .. } => false,
+                    Field::Content { .. } | Field::Empty => false,
                 })
                 .map(|(k, v)| (String::from(k), v.to_string()))
                 .collect::<HashSet<_>>()
@@ -215,6 +215,7 @@ fn update_change(state: &mut State, config: &Config, path: &Path, args: &CreateA
 
                     field
                 }
+                Field::Empty => String::new(),
             };
             fields.insert(name.clone(), content);
         }

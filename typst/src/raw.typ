@@ -51,7 +51,17 @@
           let page_start = get_label_page(start_id, deck + "." + id, loc)
           let page_end = get_label_page(end_id, deck + "." + id, loc)
           
-          if plain == none {
+          if val == none {
+            // ensure that duplicate ids get detected
+            [
+              #[] #label(start_id)
+              #[] #label(end_id)
+            ]
+            meta.fields.insert(
+              name,
+              none,
+            )
+          } else if plain == none {
             [
               #pagebreak(weak: true)
               #[] #label(start_id)
