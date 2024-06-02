@@ -353,32 +353,33 @@
     if plain_front == none {
       plain_front = front
     }
+    let meta = _with_get_number(number, numbering, secondary, secondary_numbering, allow_auto: false, step_secondary: false, number => {
+      let fields = (
+        front: front,
+        back: content,
+        proof: proof,
+      )
 
-    let fields = (
-      front: front,
-      back: content,
-      proof: proof,
-    )
-
-    let identifier = id((
-      plain_front: plain_front,
-      deck: deck,
-      model: model,
-      number: number,
-      secondary: secondary,
-      ..fields
-    ))
-    let meta = anki_thm(
-      identifier,
-      deck: deck,
-      model: model,
-      number: number,
-      numbering: numbering,
-      secondary: secondary,
-      secondary_numbering: secondary_numbering,
-      tags: tags,
-      ..fields,
-    )
+      let identifier = id((
+        plain_front: plain_front,
+        deck: deck,
+        model: model,
+        number: number,
+        secondary: secondary,
+        ..fields
+      ))
+      return anki_thm(
+        identifier,
+        deck: deck,
+        model: model,
+        number: number,
+        numbering: numbering,
+        secondary: secondary,
+        secondary_numbering: secondary_numbering,
+        tags: tags,
+        ..fields,
+      )
+    })
     
     _make_referencable(
       front,
