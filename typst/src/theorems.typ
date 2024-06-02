@@ -273,6 +273,7 @@
   item_label_prefix: "",
   secondary_numbering: "a",
   item_args: (:),
+  id: fields => fields.at("plain_front"),
 
   proof_name: "Proof",
   proof_identifier: "item",
@@ -352,18 +353,31 @@
     if plain_front == none {
       plain_front = front
     }
-    let meta = anki_thm(
-      plain_front,
-      deck: deck,
-      model: model,
-      tags: tags,
+
+    let fields = (
       front: front,
       back: content,
       proof: proof,
-      numbering: numbering,
+    )
+
+    let identifier = id((
+      plain_front: plain_front,
+      deck: deck,
+      model: model,
       number: number,
       secondary: secondary,
+      ..fields
+    ))
+    let meta = anki_thm(
+      identifier,
+      deck: deck,
+      model: model,
+      number: number,
+      numbering: numbering,
+      secondary: secondary,
       secondary_numbering: secondary_numbering,
+      tags: tags,
+      ..fields,
     )
     
     _make_referencable(
