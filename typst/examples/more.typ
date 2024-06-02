@@ -11,7 +11,7 @@
 #set heading(numbering: "1.")
 
 #let theorem = item("Theorem", proof_name: "Precious Proof", initial_tags: ("proof",))
-#let example = item("Example", initial_tags: ("example",))
+#let example = item("Example", initial_tags: ("example",), id: fields => fields.at("number"))
 #let unnumbered = item("Unnumbered", numbering: none)
 
 // NOTE that this requires a model named `some-model`. If you just want to try this out you can delete this line.
