@@ -424,8 +424,41 @@
   return inner
 }
 
+// copied from ctheorems
+// since we don't use `thm-qedhere` we can remove this functionality to get some speedups
+#let thmrules(doc) = {
+  show figure.where(kind: "thmenv"): it => it.body
+
+  show ref: it => {
+    if it.element == none {
+      return it
+    }
+    if it.element.func() != figure {
+      return it
+    }
+    if it.element.kind != "thmenv" {
+      return it
+    }
+
+    let supplement = it.element.supplement
+    if it.citation.supplement != none {
+      supplement = it.citation.supplement
+    }
+
+    let loc = it.element.location()
+    let thms = query(selector(<meta:thmenvcounter>).after(loc), loc)
+    let number = thmcounters.at(thms.first().location()).at("latest")
+    return link(
+      it.target,
+      [#supplement~#numbering(it.element.numbering, ..number)]
+    )
+  }
+
+  doc
+}
+
 #let setup(doc) = {
-  show: ct.thmrules
+  show: thmrules
 
   // copied from ctheorems
   show figure.where(kind: "anki-item"): it => it.body
