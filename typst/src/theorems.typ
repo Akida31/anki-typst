@@ -50,15 +50,16 @@
 
 #let _with_get_number(loc, number, numbering, secondary, secondary_numbering, f, allow_auto: false, step_secondary: true) = {
   if number == auto and allow_auto and secondary == none {
-    return f(auto)
+    return f(auto) + secondary_numbering_counter.update(0)
   }
   if secondary == none {
     secondary_numbering_counter.update(0)
   }
+  let (secondary_counter,) = secondary_numbering_counter.at(loc)
   if step_secondary and (secondary == auto or secondary == true) {
     secondary_numbering_counter.step()
+    secondary_counter += 1
   }
-  let (secondary_counter,) = secondary_numbering_counter.at(loc)
   let secondary = secondary
   if secondary == auto or secondary == true {
       secondary = _global_numbering(secondary_numbering, secondary_counter)
