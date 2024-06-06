@@ -23,4 +23,4 @@ if destination.is_dir():
 print(f"Creating local package installation at {destination}.")
 shutil.copytree(source, destination)
 print("Installation successfull. You can now import the package with")
-print(f"#import @local/{name}/{version}")
+print(f"#import @local/{name}:{version}")
