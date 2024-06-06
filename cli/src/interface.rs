@@ -174,10 +174,10 @@ mod cli {
 
         serde_path_to_error::deserialize(jd).map_err(|e| {
             let json_str = match std::str::from_utf8(&json) {
-                Ok(v) => v,
+                Ok(v) => v.to_string(),
                 Err(e) => {
                     warn!("typst output is invalid utf-8: {}", e);
-                    &String::from_utf8_lossy(&json)
+                    String::from_utf8_lossy(&json).to_string()
                 }
             };
             debug!("output: {}", json_str);
