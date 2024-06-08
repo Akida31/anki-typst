@@ -4,4 +4,4 @@ version = "0.2.0"
 entrypoint = "src/lib.typ"
 description = "generate anki cards from your typst code"
 categories = ["integration"]
-exclude = "examples/*"
+exclude = ["examples/*"]
