@@ -1,3 +1,8 @@
+/// Convert content to a string.
+///
+/// This function is best effort and lossy.
+/// - content (content): Content to convert.
+/// -> str
 #let to_string(content) = {
   if type(content) == str {
     content
@@ -19,6 +24,9 @@
   }
 }
 
+/// Determine whether something is empty.
+///
+/// - val (content, dict, array, str): #h(0pt)
 #let is_empty(val) = if type(val) == content {
   val.fields().len() == 0
 } else if type(val) == dictionary {
@@ -31,8 +39,11 @@
   false
 }
 
-// convert the c to a string if it is plain.
-// else return `none`
+/// Try to get the plain value from content.
+///
+/// This function is not lossy and will return `none` if it can't find the plain value.
+/// - c (content): Content to convert.
+/// -> str, none
 #let to_plain(c) = {
   if type(c) == str {
     c
@@ -46,29 +57,49 @@
       to_plain(c.body)
     }
     else if c.fields().len() > 1 {
-      none
+      if c.has("children") {
+        // TODO warn here
+        c.children.map(to_plain).join("")
+      } else {
+        none
+      }
     } else if c.fields().len() == 0 {
-      return ""
+      if c.func() == [ ].func() {
+        // space
+        " "
+      } else {
+        ""
+      }
     } else {
       let val = c.fields().values().first()
       to_plain(val)
     }
   } else if type(c) == array {
     let got_non_empty = none
+    let res = ""
     for val in c {
       if not is_empty(val) {
         if got_non_empty != none {
-          return none
+          // TODO warn here
+          // return none
         }
         got_non_empty = val
       }
+      res += to_plain(val)
     }
-    to_plain(got_non_empty)
+    res
   } else {
     none
   }
 }
 
+/// Assert that val has a valid type.
+///
+/// If val is not of some type in `valid_tys` this function will panic.
+///
+/// - ty_name (str): Name of the type, used for `panic`.
+/// - val (any): Value to check.
+/// - ..valid_tys (array): Array of valid types (e.g. str, int, content).
 #let assert_ty(ty_name, val, ..valid_tys) = {
   if valid_tys.named().len() != 0 {
     panic("can check only for positional types in " + ty_name)
@@ -80,6 +111,14 @@
   val
 }
 
+/// Get the page at which the label with `id` can be found.
+///
+/// *Panics* if there are multiple labels with `id`.
+///
+/// - id (str): The label to search for.
+/// - id_name (str): Name of the id, used for `panic`.
+/// - loc (location): Some location, used for `query`
+/// -> int
 #let get_label_page(id, id_name, loc) = {
   let elems = query(label(id), loc)
   if elems.len() == 0 {

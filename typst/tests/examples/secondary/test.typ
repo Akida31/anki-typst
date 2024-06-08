@@ -1,7 +1,7 @@
 #import "/src/lib.typ" as anki
 #import anki.theorems: item
 
-#show: anki.setup.with(set_export_from_sys: true, enable_theorems: true)
+#show: anki.setup.with(enable_theorems: true)
 #set heading(numbering: "1.")
 
 #let theorem = item("Theorem", initial_tags: ("proof",))

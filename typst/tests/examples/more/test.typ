@@ -2,10 +2,8 @@
 #import anki.theorems: item
 
 #show: anki.setup.with(
-  set_export_from_sys: true,
   enable_theorems: true,
   prefix_deck_names_with_numbers: true,
-  title_as_deck_name: true,
   title: "TITLE",
 )
 #set heading(numbering: "1.")

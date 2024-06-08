@@ -17,6 +17,9 @@
 
 #let secondary_numbering_counter = counter("anki-secondary-numbering")
 
+/// Set the current deck name.
+///
+/// - name (str): New name.
 #let deck(name) = {
   anki_state.update(state => {
     state.deck = name
@@ -24,6 +27,9 @@
   })
 }
 
+/// Set the current model name.
+///
+/// - name (str): New name.
 #let model(name) = {
   anki_state.update(state => {
     state.model = name
@@ -33,6 +39,20 @@
 
 // prevent shadowing
 #let _heading = heading
+
+/// Set the counter for the theorems.
+///
+/// *Example*:
+/// #example(```
+/// anki.theorems.set_thmcounter(items: (3, 5, 7))
+/// // After this, the next item will have the number 1.0.2
+/// anki.theorems.set_thmcounter(items: (1, 0, 1))
+/// ```, ratio: 100, scale-preview: 100%)
+///
+/// - heading (int, array, function): The new heading counter value.
+/// - items (array): The new item counter value.
+///     Each element in `items` corresponds to a level.
+///     The `base_level` argument of `item` corresponds to the number of `items`.
 #let set_thmcounter(heading: none, items: none) = {
   if heading == none {
     heading = items.slice(0, -1)
@@ -48,6 +68,17 @@
   })
 }
 
+/// Get the current number.
+///
+/// - loc (location): Current location.
+/// - number (auto, function, array): Primary number.
+/// - numbering (str, function, none): Primary numbering pattern
+/// - secondary (none, auto, true, function, array): Secondary number.
+/// - secondary_numbering (str, function, none): Secondary numbering pattern.
+/// - f (function): Closure which will be called with the resolved number.
+/// - allow_auto (bool): If `allow_auto` is `true`, `secondary` is `none` and `number` is auto, this will call the closure with just `auto`.
+/// - step_secondary (bool): Whether to step the secondary counter.
+///     This argument is necessary to prevent stepping the secondary counter multiple times for one item.
 #let _with_get_number(loc, number, numbering, secondary, secondary_numbering, f, allow_auto: false, step_secondary: true) = {
   if number == auto and allow_auto and secondary == none {
     return f(auto) + secondary_numbering_counter.update(0)
@@ -82,6 +113,13 @@
   }
 }
 
+/// Get the deck name from headings.
+///
+/// The headings will be joined with `::` to create anki subdecks.
+///
+/// - loc (location): Current location
+/// - prefix_deck_names_with_numbers (bool): Whether the deck names will be prefixed with the corresponding heading number.
+/// -> str
 #let _get_headings(loc, prefix_deck_names_with_numbers) = {
   let levels = ()
   let elems = query(selector(heading).before(loc))
@@ -113,34 +151,24 @@
   levels.join("::")
 }
 
-#let anki_thm(
-  id,
-  tags: (),
-  deck: none,
-  model: none,
-  numbering: "1.1",
-  number: auto,
-  secondary: none,
-  secondary_numbering: "a",
-  ..fields,
-) = {
-  locate(loc => {
-    anki_thm_with_loc(
-      loc,
-      id,
-      tags: tags,
-      deck: deck,
-      model: model,
-      numbering: numbering,
-      number: number,
-      secondary: secondary,
-      secondary_numbering: secondary_numbering,
-      ..fields
-    )
-  })
-}
-
-#let anki_thm_with_loc(
+/// Same as `anki_thm` but takes the current location.
+///
+/// This should improve performance if you already called `locate`.
+///
+/// - loc (location): The current location.
+/// - id (str): The id of the card. Used to update the card later on.
+/// - tags (array): Tags to add to the card.
+/// - deck (none, str): Name of the deck.
+///     Anki nests decks with `::`, so you can try `Deck::Subdeck`.
+///     If `deck` is `none` it will be read from state.
+/// - model (none, str): Name of the model.
+///     If `model` is `none` it will be read from state.
+/// - number (auto, function, array): The primary number of the card.
+/// - numbering (str, function, none): The pattern for the primary number.
+/// - secondary (none, auto, true, function, array): The secondary number of the card.
+/// - secondary_numbering (str, function, none): The pattern for the secondary number.
+/// - ..fields (arguments): Additional fields for the anki card.
+#let _anki_thm_with_loc(
   loc,
   id,
   tags: (),
@@ -164,7 +192,7 @@
       loc,
       config.prefix_deck_names_with_numbers,
     )
-    if config.title_as_deck_name and config.title != none and config.title != "" {
+    if config.title != none and config.title != "" {
       config.title + "::" + headings
     } else {
       headings
@@ -186,7 +214,8 @@
     secondary,
     secondary_numbering,
     step_secondary: false,
-    number => raw.anki_export(
+    number => raw._anki_export_with_config(
+      config,
       id: id,
       tags: tags,
       deck: deck,
@@ -197,11 +226,80 @@
   )
 }
 
+/// Create an anki card.
+///
+/// *Example*
+/// #example(```
+/// #import anki.theorems: anki_thm
+///
+/// #anki_thm(
+///   "id 29579",
+///   tags: ("Perfect", ),
+///   deck: "beauty",
+///   question: "Are you beautiful?",
+///   answer: "Yes!",
+/// )
+/// ```, scale-preview: 100%, mode: "markup", preamble: "", scope: (_anki_thm_with_loc: anki.theorems._anki_thm_with_loc), ratio: 1000)
+///
+/// - id (str): The id of the card. Used to update the card later on.
+/// - tags (array): Tags to add to the card.
+/// - deck (none, str): Name of the deck.
+///     Anki nests decks with `::`, so you can try `Deck::Subdeck`.
+///     If `deck` is `none` it will be read from state.
+/// - model (none, str): Name of the model.
+///     If `model` is `none` it will be read from state.
+/// - number (auto, function, array): The primary number of the card.
+/// - numbering (str, function, none): The pattern for the primary number.
+/// - secondary (none, auto, true, function, array): The secondary number of the card.
+/// - secondary_numbering (str, function, none): The pattern for the secondary number.
+/// - ..fields (arguments): Additional fields for the anki card.
+#let anki_thm(
+  id,
+  tags: (),
+  deck: none,
+  model: none,
+  numbering: "1.1",
+  number: auto,
+  secondary: none,
+  secondary_numbering: "a",
+  ..fields,
+) = {
+  locate(loc => {
+    _anki_thm_with_loc(
+      loc,
+      id,
+      tags: tags,
+      deck: deck,
+      model: model,
+      numbering: numbering,
+      number: number,
+      secondary: secondary,
+      secondary_numbering: secondary_numbering,
+      ..fields
+    )
+  })
+}
+
+/// Inner function which calls ctheorems.
+///
+/// - loc (location): Current location.
+/// - export (bool): Whether export mode is enabled.
+/// - name (str): Name of the item for `ctheorems.thmbox`.
+/// - inner_args (dict): Arguments which will be passed to `ctheorems`.
+/// - base (none, str): Base for `ctheorems`. `none` means "do not attach, count globally".
+/// - base_level (none, int): The number of levels from base to take for item numbering. `none` means "use the base as-is".
+/// - breakable (bool): Argument to the `block` of `ctheorems`. Whether to allow (page) breaks inside the item.
+/// - create_item_label (bool): Whether to create a new label for this item. The label will be `item_level_prefix + name`
+/// - item_label_prefix (str): Prefix for item labels.
+/// - number (auto, function, array): The primary number of the card.
+/// - numbering (str, function, none): The pattern for the primary number.
+/// - secondary (none, auto, true, function, array): The secondary number of the card.
+/// - secondary_numbering (str, function, none): The pattern for the secondary number.
+/// - ..args (arguments): Arguments which will be passed to `ctheorems`.
 #let _item_inner(
   loc,
   export,
   name,
-  identifier,
   inner_args: (:),
   base: "heading",
   base_level: none,
@@ -268,14 +366,22 @@
   }
 }
 
+/// Make the body referenceable.
+///
+/// This function is necessary because we use functions like `locate` which create opaque content,
+/// which can't be referenced.
+/// So this function wraps the content in a figure.
+///
+/// - body (content): The body to wrap.
+/// - identifier (str): The identifier of the content. This will be available as metadata at `<meta:anki-thmenvcounter>` and the supplement of the figure.
+/// - numbering (none, str, function): The numbering of the figure.
 #let _make_referencable(
-  name,
-  content,
+  body,
   identifier,
   numbering,
 ) = {
   figure(
-    content + [#metadata(identifier) <meta:anki-thmenvcounter>],
+    body + [#metadata(identifier) <meta:anki-thmenvcounter>],
     placement: none,
     caption: none,
     kind: "anki-item",
@@ -286,24 +392,90 @@
   )
 }
 
+/// Main function to create anki items.
+///
+/// This function returns a function which represents an item kind.
+/// You can call the returned function multiple times to create multiple items.
+///
+/// *Examples*
+/// #example(```
+/// #import anki.theorems: item
+/// // Don't forget this!
+/// #show: anki.setup.with(enable_theorems: true)
+///
+/// // create item kinds
+/// #let example = item("Example", initial_tags: ("example",))
+/// #let theorem = item("Theorem", proof_name: "\"Proof\"")
+///
+/// // create item
+/// #example("Pythagoras")[
+///  $ a^2 + b^2 = c^2 $
+/// ]
+///
+/// // use secondary numbering
+/// #example("triangle", secondary: auto)[
+///   #sym.triangle.tr.filled
+/// ]
+/// #example("another triangle", secondary: auto)[
+///   #sym.triangle.t.stroked
+/// ]
+///
+/// // and a theorem, with a custom number
+/// #theorem("Triangular numbers", number: "42")[
+///   The triangular numbers are given by:
+///   $ T_n = sum_(k=1)^n k = (n(n+1))/2 $
+/// ][
+///   Induction over n.
+/// ]
+/// ```, scale-preview: 100%, mode: "markup", preamble: "")
+///
+/// - name (str): Name of the item kind.
+/// - initial_tags (array): Tags to add to each item of this kind.
+///   To remove these tags pass `clear_tags: true` to the inner function.
+/// - base_level (none, int): The number of levels from headings to take for item numbering.
+///     `none` means "use all heading levels".
+/// - inset (relative, dictionary): How much to pad the block's content.
+/// - separator (content): Separator between name and body.
+/// - numbering (str, function, none): The numbering pattern for the primary number.
+/// - secondary_numbering (str, function): The numbering pattern for the secondary number.
+/// - create_item_label (bool): Whether to create a new label for each item of this kind. The label will be `item_level_prefix + name`
+/// - item_label_prefix (str): Prefix for item labels.
+/// - item_args (dict): Arguments which will be passed to `ctheorems` for each item of this kind.
+/// - id (function): Function to create the id of the card.
+///      The id must be unique as it is used to update cards later on.
+///      The function will be called with `plain_front, deck, model, number, secondary, ..fields`.
+/// - proof_name (str): How the proof (or in general second argument) should be called.
+/// - proof_args (dict): Arguments which will be passed to `ctheorems` for each proof.
 #let item(
   name,
-  identifier: "items",
   initial_tags: (),
   base_level: 2,
   inset: 0em,
-  separator: [*.* #h(0.1em)],
+  separator: [. #h(0.1em)],
   numbering: "1.1",
+  secondary_numbering: "a",
   create_item_label: true,
   item_label_prefix: "",
-  secondary_numbering: "a",
   item_args: (:),
   id: fields => fields.at("plain_front"),
-
   proof_name: "Proof",
-  proof_identifier: "item",
   proof_args: (:),
 ) = {
+
+  /// Inner function to create anki items.
+  ///
+  /// - front (content, str): Front content for the card.
+  /// - content (content): Main content for the card.
+  /// - tags (array): Tags to add to the card.
+  /// - deck (none, str): Name of the deck.
+  ///     Anki nests decks with `::`, so you can try `Deck::Subdeck`.
+  ///     If `deck` is `none` it will be read from state.
+  /// - model (none, str): Name of the model.
+  ///     If `model` is `none` it will be read from state.
+  /// - clear_tags (bool): Remove `initial_tags` and use only `tags`.
+  /// - number (auto, function, array): The primary number of the card.
+  /// - secondary (none, auto, true, function, array): The secondary number of the card.
+  /// - ..maybe_proof (none, content): The proof of the card if specified.
   let inner(
     front,
     content,
@@ -339,13 +511,12 @@
     }
 
     let cont_meta = locate(loc => {
-      let export = is_export()
+      let export = is_export(loc)
       let cont = {
         _item_inner(
           loc,
           export,
           name,
-          identifier,
           base_level: base_level,
           create_item_label: create_item_label,
           item_label_prefix: item_label_prefix,
@@ -363,7 +534,7 @@
 
         if not export and proof != none {
           ct.thmplain(
-            proof_identifier,
+            "items",
             proof_name,
             // base: "theorem",
             // TODO prefer these from `proof_args`
@@ -396,7 +567,7 @@
             secondary: secondary,
             ..fields
           ))
-          return anki_thm_with_loc(
+          return _anki_thm_with_loc(
             loc,
             identifier,
             deck: deck,
@@ -415,7 +586,6 @@
     })
 
     _make_referencable(
-      front,
       cont_meta,
       name,
       numbering,
@@ -425,9 +595,13 @@
   return inner
 }
 
-// copied from ctheorems
-// since we don't use `thm-qedhere` we can remove this functionality to get some speedups
-#let thmrules(doc) = {
+/// Show-rule for theorems.
+///
+/// Copied from ctheorems, since we don't use `thm-qedhere` we can remove this functionality to get some speedups.
+///
+/// - doc (content): The document to wrap.
+/// -> content
+#let _thmrules(doc) = {
   show figure.where(kind: "thmenv"): it => it.body
 
   show ref: it => {
@@ -458,8 +632,17 @@
   doc
 }
 
+/// Setup the document
+///
+/// This is crucial for displaying everything correctly!
+///
+/// *Example*:
+/// #example(`show: anki.theorems.setup`, ratio: 1000, scale-preview: 100%)
+///
+/// - doc (content): The document to wrap.
+/// -> content
 #let setup(doc) = {
-  show: thmrules
+  show: _thmrules
 
   // copied from ctheorems
   show figure.where(kind: "anki-item"): it => it.body
