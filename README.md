@@ -54,7 +54,6 @@ But you can also use the raw export function:
   answer: "Yes!",
 )
 ```
-![image of rendered code for the example via raw function](typst/doc/example2.png)
 
 
 ## Generating anki cards
