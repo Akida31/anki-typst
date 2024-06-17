@@ -23,12 +23,22 @@
   ),
 ) = {
   let val = sys.inputs.at(key, default: default)
+  let option_vals = ()
   for (key, vals) in options {
-    if vals.contains(val) {
-      return key
+    if type(vals) == array {
+      if vals.contains(val) {
+        return key
+      }
+      option_vals += vals
+    } else {
+      if vals == val {
+        return key
+      }
+      option_vals.push(vals)
     }
   }
-  panic("unexpected value for key " + key + ": " + val)
+  let expected = option_vals.map(str).dedup().map(s => "`" + s + "`").join(", ")
+  panic("unexpected value for key " + key + ": `" + val + "`. Expected one of " + expected + ".")
 }
 
 /// Enable or disable export mode.
