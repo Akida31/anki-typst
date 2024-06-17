@@ -622,7 +622,7 @@
 
     let loc = it.element.location()
     let thms = query(selector(<meta:thmenvcounter>).after(loc), loc)
-    let number = thmcounters.at(thms.first().location()).at("latest")
+    let number = ct.thmcounters.at(thms.first().location()).at("latest")
     return link(
       it.target,
       [#supplement~#numbering(it.element.numbering, ..number)]
