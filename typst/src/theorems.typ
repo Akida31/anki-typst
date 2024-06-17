@@ -492,7 +492,7 @@
       if pos.len() == 0 {
         for (key, value) in maybe_proof.named() {
           if key != "proof" {
-            panic("expected only keyword `proof` but got " + str(proof))
+            panic("expected only keyword `proof` but got " + str(key))
           }
           return value;
         }
