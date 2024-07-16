@@ -1,6 +1,8 @@
 # anki-typst
 Create anki cards from typst.
 
+This exports your typst notes to images and creates anki notes containing them.
+
 ## Writing cards
 
 For more information see the [manual](./typst/doc/doc.pdf)
