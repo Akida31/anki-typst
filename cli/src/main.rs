@@ -674,7 +674,7 @@ fn create_all_decks(path: &Path) -> Result<()> {
 fn create_default_model(model_name: &str) -> Result<()> {
     debug!("getting all deck names");
     let names = get_deck_names()?;
-    if names.0.iter().find(|name| *name == model_name).is_some() {
+    if names.0.iter().any(|name| *name == model_name) {
         bail!("default model with name {} already exists", model_name);
     }
 
@@ -685,7 +685,7 @@ fn create_default_model(model_name: &str) -> Result<()> {
             .map(String::from)
             .collect(),
         css: String::from(
-            r#"
+            r"
 .card {
  font-family: arial;
  font-size: 20px;
@@ -705,7 +705,7 @@ fn create_default_model(model_name: &str) -> Result<()> {
 .nightMode .lighttheme {
   display: none;
 }
-"#,
+",
         ),
         is_cloze: false,
         card_templates: vec![HashMap::from_iter(

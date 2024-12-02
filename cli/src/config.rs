@@ -85,19 +85,17 @@ impl Config {
     }
 
     pub fn is_ignored(&self, path: &str) -> bool {
-        if !self.file_include.is_empty() {
-            if !self.file_include.iter().any(|r| r.re.is_match(path)) {
-                info!(
-                    "ignoring {} because it is not included (regex={})",
-                    path,
-                    self.file_include
-                        .iter()
-                        .map(|r| format!("\"{}\"", r.re_str))
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                );
-                return true;
-            }
+        if !self.file_include.is_empty() && !self.file_include.iter().any(|r| r.re.is_match(path)) {
+            info!(
+                "ignoring {} because it is not included (regex={})",
+                path,
+                self.file_include
+                    .iter()
+                    .map(|r| format!("\"{}\"", r.re_str))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            );
+            return true;
         }
         for RegexString { re, re_str } in &self.file_exclude {
             if re.is_match(path) {
