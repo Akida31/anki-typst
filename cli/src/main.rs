@@ -547,14 +547,30 @@ fn watch(config: &Config, path: &Path, args: &CreateArgs) -> Result<()> {
 fn get_notes(query: &str) -> Result<Vec<NoteWithInfo>> {
     let ids = find_notes(query)?;
     info!("getting {} notes", ids.len());
-    let notes = notes_info(&ids)?;
+    // don't request all notes at once, at the result is larger than 10MB
+    // which ureq doesn't accept
+    let notes = ids.chunks(400).try_fold(
+        Vec::with_capacity(ids.len()),
+        |mut acc, ids| -> color_eyre::Result<_> {
+            acc.extend(notes_info(ids)?);
+            Ok(acc)
+        },
+    )?;
     debug!("got notes");
     let card_ids = notes
         .iter()
         .flat_map(|note_info| note_info.cards.clone())
         .collect::<Vec<_>>();
     debug!("getting card info of {} cards", card_ids.len());
-    let cards = cards_info(&card_ids)?;
+    // don't request all cards at once, at the result is larger than 10MB
+    // which ureq doesn't accept
+    let cards = card_ids.chunks(400).try_fold(
+        Vec::with_capacity(ids.len()),
+        |mut acc, ids| -> color_eyre::Result<_> {
+            acc.extend(cards_info(ids)?);
+            Ok(acc)
+        },
+    )?;
     debug!("got card info");
     assert_eq!(card_ids.len(), cards.len());
     let mut cards = cards.into_iter();
