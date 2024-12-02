@@ -60,9 +60,9 @@ But you can also use the raw export function:
 
 ## Generating anki cards
 * Make sure to install the command line interface
-* run `anki-typst create-all-decks -p main.typ`
+* run `anki-typst -p main.typ create-all-decks`
 * then `anki-typst create-default-model`
-* and finally `anki-typst create -p main.typ`
+* and finally `anki-typst -p main.typ create`
 
 ## Installing
 * install [typst](https://github.com/typst/typst?tab=readme-ov-file#installation) ;)
